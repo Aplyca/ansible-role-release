@@ -8,17 +8,11 @@ BASEDIR=$(dirname $0);
 HOSTNAME=$(hostname);
 PROJECT=$1
 VERSION=$2
-REMOTE="live"
 
 echo "Arguments: $@";
 
 if [ -z $PROJECT ]; then
     echo "No project was provided.";
-    exit 0;
-fi
-
-if [ -z $REMOTE ]; then
-    echo "No remote was provided.";
     exit 0;
 fi
 
@@ -31,9 +25,6 @@ SITEROOT="/var/www/$PROJECT";
 cd $SITEROOT;
 if [[ -L app ]] && [[ -d current/.git ]] && [[ "$(readlink app)" = "current" ]]; then
     SITEROOT="/var/www/$PROJECT";
-else
-    SITEROOT="/var/www/$PROJECT/$REMOTE";
-    cd $SITEROOT;
 fi
 
 echo "Releasing version $VERSION on $HOSTNAME:$SITEROOT at $DATE";
