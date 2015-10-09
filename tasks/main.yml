@@ -1,2 +1,13 @@
 ---
-# tasks file for aplyca.Release
+- name: Copy release script
+  sudo: yes
+  copy:
+    src: release.sh
+    dest: /usr/local/bin/release.sh
+    mode: 0744
+    owner: "{{ ansible_user_id }}"
+
+- name: Execute release
+  shell: "/usr/local/bin/release.sh {{ release['version'] }}"
+  args:
+    chdir: "{{ release['target'] }}/{{ release['project'] }}"

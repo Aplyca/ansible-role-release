@@ -1,0 +1,8 @@
+aws:
+  profiles:
+    s3user:
+      aws_access_key_id: THISISTHEACCESSKEY
+      aws_secret_access_key: THISISTHESECRETACCESSKEY
+    logsuser:
+      aws_access_key_id: THISISTHEACCESSKEY
+      aws_secret_access_key: THISISTHESECRETACCESSKEY

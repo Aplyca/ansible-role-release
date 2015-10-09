@@ -1,0 +1,9 @@
+dependencies:
+  pre:
+    - sudo pip install -r build/requirements.txt
+
+test:
+  pre:
+    - sudo ln -s ansible-role-aws ../aplyca.Release
+  override:
+    - tests/tests.sh

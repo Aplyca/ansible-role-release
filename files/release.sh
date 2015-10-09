@@ -6,41 +6,31 @@ TIMESTART=$(date +%s);
 DATE=$(date);
 BASEDIR=$(dirname $0);
 HOSTNAME=$(hostname);
-PROJECT=$1
-VERSION=$2
+VERSION=$1
 
 echo "Arguments: $@";
-
-if [ -z $PROJECT ]; then
-    echo "No project was provided.";
-    exit 0;
-fi
 
 if [ -z $VERSION ]; then
     echo "No version was provided.";
     exit 0;
 fi
 
-SITEROOT="/var/www/$PROJECT";
-cd $SITEROOT;
-if [[ -L app ]] && [[ -d current/.git ]] && [[ "$(readlink app)" = "current" ]]; then
-    SITEROOT="/var/www/$PROJECT";
-fi
+if [[ -L app ]] && [[ -d app/.git ]] && [[ "$(readlink app)" = "releases/current" ]]; then
 
-echo "Releasing version $VERSION on $HOSTNAME:$SITEROOT at $DATE";
+    RELEASEROOT=$(pwd);
+    echo "Releasing version $VERSION on $HOSTNAME:${RELEASEROOT} at $DATE";
 
-if [[ -L app ]] && [[ -d current/.git ]] && [[ "$(readlink app)" = "current" ]]; then
     if [ -f .lock ]; then
         echo "Locked, please wait until the current operation ends.";
     else
-        echo "Locking the $SITEROOT to perform the operation";
+        echo "Locking the ${RELEASEROOT} to perform the operation";
         touch .lock;
 
-        rm -rf new;
-        mkdir -p new;
-        rsync -aA current/ new/;
+        rm -rf releases/new;
+        mkdir -p releases/new;
+        rsync -aA releases/current/ releases/new/;
 
-        cd new;
+        cd releases/new;
         echo "Pulling lastest code from Prod ..."
         git checkout master;
         git fetch --all -p;
@@ -88,14 +78,14 @@ if [[ -L app ]] && [[ -d current/.git ]] && [[ "$(readlink app)" = "current" ]];
             echo "Nothing new to release";
         fi
 
-        cd $SITEROOT;
         rm -rf new;
 
-        echo "Unlocking the $SITEROOT directory";
+        echo "Unlocking the ${RELEASEROOT} directory";
+        cd $RELEASEROOT;
         rm .lock
     fi
 else
-    echo "Release directories on $SITEROOT are not properly installed.";
+    echo "Release directories on ${RELEASEROOT} are not properly installed.";
 fi
 
 echo "";
