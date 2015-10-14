@@ -1,4 +1,6 @@
 ---
+- debug: var=release
+
 - name: Create release scritps directory
   sudo: yes
   file:
@@ -13,15 +15,16 @@
     dest: "{{ release['scripts_path'] }}/exclude_list.txt"
     mode: 0744
 
-- name: Create commands script
+- name: Create release script
   template:
     src: release.sh.j2
     dest: "{{ release['scripts_path'] }}/release.sh"
     mode: 0744
 
-- debug: var=release
-
-- name: "Execute release vesion"
+- name: "Execute release version"
   shell: "{{ release['scripts_path'] }}/release.sh {{ release['version'] }}"
   args:
     chdir: "{{ release['target'] }}/{{ release['project'] }}"
+  register: result
+
+- debug: var=result

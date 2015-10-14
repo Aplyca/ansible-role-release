@@ -9,8 +9,6 @@ BASEDIR=$(dirname $0);
 HOSTNAME=$(hostname);
 VERSION=$1
 
-echo "Arguments: $@";
-
 if [ -z $VERSION ]; then
     echo "No version was provided.";
     exit 0;
