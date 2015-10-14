@@ -1,4 +1,5 @@
 #!/bin/bash
+# {{ ansible_managed }}
 # Release new feature, Idempotent, instantaneous and ACID.
 # Arguments <project>
 
@@ -28,7 +29,7 @@ if [[ -L app ]] && [[ -d app/.git ]] && [[ "$(readlink app)" = "releases/current
 
         rm -rf releases/new;
         mkdir -p releases/new;
-        rsync -aA releases/current/ releases/new/;
+        rsync -aA --exclude-from '/usr/local/release/exclude_list.txt' releases/current/ releases/new/;
 
         cd releases/new;
         echo "Pulling lastest code from Prod ..."
@@ -41,44 +42,51 @@ if [[ -L app ]] && [[ -d app/.git ]] && [[ "$(readlink app)" = "releases/current
         if [ -z "$UPTODATE" ]; then
             CURRENTVERSION=$(git describe --dirty --always --abbrev=0 --tags 2>&1 | grep 'v');
             if [ "$CURRENTVERSION" == "$VERSION" ]; then
-                #TODO: remove out of retention period branches
-                git checkout tags/$VERSION -b release-$VERSION
+                TAGDIFF=$(git diff ${VERSION});
+                if [ -z "$TAGDIFF" ]; then
+                    #TODO: remove out of retention period branches
+                    git checkout tags/$VERSION -b release-$VERSION
 
-                echo "Regenerating autoloads ..."
-                php bin/php/ezpgenerateautoloads.php -e > /dev/null 2>&1;
-                php bin/php/ezpgenerateautoloads.php -o > /dev/null 2>&1;
+                    # Commands executing during the release
 
-                echo "Clearing cache ...";
-                php bin/php/ezcache.php --clear-id=content,ini,codepage,template,template-block,template-override,ezjscore-packer,translation > /dev/null 2>&1;
-                cd ..;
+                    {% for command in release['during_commands'] %}
+                    echo "Executing {{ command.name }}";
+                    {{ command.command }} &&
+                    {% else %}
+                    echo "No commands available";
+                    {% endfor %}
 
-                echo "New release symlink";
-                ln -sf new latest;
+                    cd ${RELEASEROOT};
+                    echo "New release symlink";
+                    ln -sf releases/new latest;
 
-                #TODO: pre-generate cache, create a new VHwith access restriction and use wget or curl with a URLs text file to create cache.
+                    #TODO: pre-generate cache, create a new VHwith access restriction and use wget or curl with a URLs text file to create cache.
 
-                echo "Publishing the new release $VERSION"
-                mv -T latest app;
+                    echo "Publishing the new release $VERSION"
+                    mv -T latest app;
 
-                #TODO: Purge Varnish
+                    #TODO: Purge Varnish
 
-                echo "Saving the previous release";
-                rm -rf previous;
-                mv current previous;
+                    echo "Saving the previous release";
+                    rm -rf releases/previous;
+                    mv releases/current releases/previous;
 
-                echo "Renaming the new release to current";
-                mkdir -p current;
-                rsync -a new/ current/;
-                ln -sf current tmp_app;
-                mv -T tmp_app app;
+                    echo "Renaming the new release to current";
+                    mkdir -p releases/current;
+                    rsync -a releases/new/ releases/current/;
+                    ln -sf releases/current tmp_app;
+                    mv -T tmp_app app;
+                else
+                    echo "Release version $VERSION is not equal to master";
+                fi
             else
               echo "Current version $CURRENTVERSION is not equal to release version $VERSION";
             fi
         else
             echo "Nothing new to release";
         fi
-
-        rm -rf new;
+        cd ${RELEASEROOT};
+        rm -rf releases/new;
 
         echo "Unlocking the ${RELEASEROOT} directory";
         cd $RELEASEROOT;

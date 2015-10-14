@@ -1,14 +1,10 @@
 ---
 - hosts: all
   tasks:
-    - name: Test if AWS CLI is installed
-      sudo: yes
-      shell: "which aws"
-      register: result
-      failed_when: "'/usr/local/bin/aws' not in result.stdout"
+    - name: Test if release scripts exists
+      stat:
+        path: "{{ release['scripts_path'] }}/release.sh"
+      register: release
 
-    - name: Test if AWS CloudWatch Logs agent is present and running
-      sudo: yes
-      shell: "service awslogs status"
-      register: result
-      failed_when: "'is running' not in result.stdout"    
+    - fail: msg="Whoops! release script dos not exist"
+      when: release.stat.isfile is defined and release.stat.isfile

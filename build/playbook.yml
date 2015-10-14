@@ -1,4 +1,6 @@
 ---
 - hosts: all
+  vars_files:
+    - settings.yml
   roles:
     - aplyca.Release

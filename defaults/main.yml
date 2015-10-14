@@ -3,3 +3,5 @@ release:
   target: /var/www
   project: myapp
   version: v1.0.0
+  during_commands: []
+  sync_exclude: []

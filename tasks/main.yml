@@ -1,13 +1,27 @@
 ---
-- name: Copy release script
+- name: Create release scritps directory
   sudo: yes
-  copy:
-    src: release.sh
-    dest: /usr/local/bin/release.sh
-    mode: 0744
-    owner: "{{ ansible_user_id }}"
+  file:
+   path: "{{ release['scripts_path'] }}"
+   state: directory
+   mode: 0755
+   owner: "{{ ansible_user_id }}"
 
-- name: Execute release
-  shell: "/usr/local/bin/release.sh {{ release['version'] }}"
+- name: Create exclude list file
+  template:
+    src: exclude_list.txt.j2
+    dest: "{{ release['scripts_path'] }}/exclude_list.txt"
+    mode: 0744
+
+- name: Create commands script
+  template:
+    src: release.sh.j2
+    dest: "{{ release['scripts_path'] }}/release.sh"
+    mode: 0744
+
+- debug: var=release
+
+- name: "Execute release vesion"
+  shell: "{{ release['scripts_path'] }}/release.sh {{ release['version'] }}"
   args:
     chdir: "{{ release['target'] }}/{{ release['project'] }}"
