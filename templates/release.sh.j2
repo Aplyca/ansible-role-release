@@ -71,7 +71,7 @@ if [[ -L app ]] && [[ -d app/.git ]] && [[ "$(readlink app)" = "releases/current
 
                     echo "Renaming the new release to current";
                     mkdir -p releases/current;
-                    rsync -a releases/new/ releases/current/;
+                    rsync -aA --exclude-from '/usr/local/release/exclude_list.txt' releases/new/ releases/current/;
                     ln -sf releases/current tmp_app;
                     mv -T tmp_app app;
                 else
