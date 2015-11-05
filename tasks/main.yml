@@ -1,5 +1,6 @@
 ---
-- debug: var=release
+- name: "Release variables:"
+  debug: var=release
 
 - name: Create release scritps directory
   sudo: yes
