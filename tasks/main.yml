@@ -2,30 +2,64 @@
 - name: "Release variables:"
   debug: var=release
 
-- name: Create release scritps directory
-  sudo: yes
+- name: Check if App is properly installed
+  stat:
+    path: "{{ release['target'] }}/{{ release['project'] }}/app/.git"
+  register: app_dir
+  failed_when: not (app_dir.stat.isdir is defined and app_dir.stat.isdir)
+
+- name: Get new release directory
+  shell: "date +\"%Y%m%d%H%M%S\""
+  register: release_dir
+
+- name: Create release directory
   file:
-   path: "{{ release['scripts_path'] }}"
+   path: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
    state: directory
-   mode: 0755
-   owner: "{{ ansible_user_id }}"
+
+# TODO: Add exclude directories
+
+- name: Copy App to new release directory
+  shell: "rsync -aA  app/ releases/{{ release_dir.stdout }}/"
+  args:
+    chdir: "{{ release['target'] }}/{{ release['project'] }}"
+
+- name: Get current branch
+  shell: "git rev-parse --abbrev-ref HEAD"
+  args:
+    chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
+  register: current_branch
+
+- debug: var=current_branch
+
+- name: Get latest code
+  shell: "{{ item }}"
+  args:
+    chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
+  with_items:
+    - git checkout master
+    - git fetch --all -p
+    - git pull
+
+- name: Check if new code exists to release
+  shell: "git diff {{ current_branch.stdout }}"
+  args:
+    chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
+  register: new_code
+  ignore_errors: yes
+
+- include: release.yml
+  when: new_code.stdout != "" and new_code.sterr == ""
+
+- include: abort.yml
+  when: new_code.stdout == "" or new_code.sterr != ""
+
+- debug: var=new_code
+
+- fail: msg="STOP"
 
 - name: Create exclude list file
   template:
     src: exclude_list.txt.j2
-    dest: "{{ release['scripts_path'] }}/exclude_list.txt"
+    dest: "/tmp/exclude_list.txt"
     mode: 0744
-
-- name: Create release script
-  template:
-    src: release.sh.j2
-    dest: "{{ release['scripts_path'] }}/release.sh"
-    mode: 0744
-
-- name: "Execute release version"
-  shell: "{{ release['scripts_path'] }}/release.sh {{ release['version'] }}"
-  args:
-    chdir: "{{ release['target'] }}/{{ release['project'] }}"
-  register: result
-
-- debug: var=result
