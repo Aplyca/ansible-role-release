@@ -12,7 +12,7 @@ Requirements
 ------------
 
 Use hash behavior for variables in ansible.cfg
-See example: https://github.com/Aplyca/ansible-role-aws/blob/master/tests/ansible.cfg
+See example: https://github.com/Aplyca/ansible-role-release/blob/master/tests/ansible.cfg
 See official docs: http://docs.ansible.com/intro_configuration.html#hash-behaviour
 
 Installation
