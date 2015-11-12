@@ -18,31 +18,10 @@
   args:
     chdir: "{{ release['target'] }}/{{ release['project'] }}"
   with_items: release['after_commands']
-
-- name: Get latest tag
-  shell: "git describe --dirty --always --abbrev=0 --tags 2>&1 | grep 'v'"
-  args:
-    chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
-  register: current_tag
-
-- name: Generate new release tag version
-  semver:
-    version: "{{ current_tag.stdout }}"
-    type: "{{ release['semver']['type'] }}"
-    prefix: "v"
-  register: release_tag
   ignore_errors: yes
 
-- name: Create and push and checkout new release tag
-  shell: "git tag -a {{ release_tag.version }} -m \"Version {{ release_tag.version }} released by {{ release['releaser']}}\" && git push origin {{ release_tag.version }}"
-  args:
-    chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
-  with_items:
-    - "git tag -a {{ release_tag.version }} -m \"Version {{ release_tag.version }} released by {{ release['releaser']}}\""
-    - "git push origin {{ release_tag.version }}"
-    - "git checkout tags/{{ release_tag.version }} -b release-{{ release_tag.version }}"
-  ignore_errors: yes
-  when: release_tag.version is defined
+- include: semver.yml
+  when: release.semver.enabled
 
 - name: Get release directories to remove
   shell: "/bin/ls -X1 | grep '^2' | sort | awk \"NR<=$(expr $(ls -1 | grep '^2' | wc -l) - {{ release['max_keep'] }})\""
@@ -55,7 +34,3 @@
    path: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ item }}"
    state: absent
   with_items: remove_dirs.stdout_lines
-
-- name: Released new version
-  debug:
-    msg: "Type: {{ release['semver']['type'] }}, Previous: {{ current_tag.stdout }}, New: {{ release_tag.version }}"
