@@ -25,13 +25,13 @@
   when: if_new_tag.stdout != "" and if_new_tag.stderr == ""
 
 - name: Create, push and checkout new release tag
-  shell: "git tag -a {{ release_tag.version }} -m \"Version {{ release_tag.version }} released by {{ release['releaser']}}\" && git push origin {{ release_tag.version }}"
+  shell: "{{ item }}"
   args:
     chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
   with_items:
     - "git tag -a {{ release_tag.version }} -m \"Version {{ release_tag.version }} released by {{ release['releaser']}}\""
-    - "git push origin {{ release_tag.version }}"
     - "git checkout tags/{{ release_tag.version }} -b release-{{ release_tag.version }}"
+    - "git push origin {{ release_tag.version }}"    
   ignore_errors: yes
   when: release_tag.version is defined
 

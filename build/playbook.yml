@@ -3,5 +3,11 @@
   gather_facts: no
   vars_files:
     - settings.yml
+  pre_tasks:
+    - apt: name=git
+      become: yes
+    - file: path="/tmp/myapp/releases/initial" state=directory
+    - file: dest=/tmp/myapp/app src=releases/initial state=link
+    - git: repo=https://github.com/Aplyca/ansible-role-release.git dest="/tmp/myapp/releases/initial" version=master
   roles:
     - aplyca.Release

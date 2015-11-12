@@ -28,7 +28,6 @@
   template:
     src: exclude_list.txt.j2
     dest: "/tmp/exclude_list.txt"
-    mode: 0744
 
 - name: Copy App to new release directory
   shell: "rsync -aA --exclude-from '/tmp/exclude_list.txt' app/ releases/{{ release_dir.stdout }}/"
