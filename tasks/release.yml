@@ -21,6 +21,14 @@
     chdir: "{{ release['target'] }}/{{ release['project'] }}"
   with_items: release['after_commands']
 
+- name: Get latest tag
+  shell: "git describe --dirty --always --abbrev=0 --tags 2>&1 | grep 'v'"
+  args:
+    chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
+  register: latest_tag
+
+- debug: var=latest_tag
+
 - name: Get release directories to remove
   shell: "/bin/ls -X1 | grep '^2' | sort | awk \"NR<=$(expr $(ls -1 | grep '^2' | wc -l) - {{ release['max_keep'] }})\""
   args:
@@ -32,5 +40,3 @@
    path: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ item }}"
    state: absent
   with_items: remove_dirs.stdout_lines
-
-- debug: var=remove_dirs
