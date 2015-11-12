@@ -1,6 +1,5 @@
 ---
 release:
-  version: v1.0.0
   during_commands:
     - "ls -la"
   after_commands:

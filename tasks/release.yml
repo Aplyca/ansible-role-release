@@ -25,9 +25,29 @@
   shell: "git describe --dirty --always --abbrev=0 --tags 2>&1 | grep 'v'"
   args:
     chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
-  register: latest_tag
+  register: current_tag
 
-- debug: var=latest_tag
+- debug: var=current_tag
+
+- name: Generate new release tag
+  semver:
+    version: "{{ current_tag.stdout }}"
+    type: "{{ release['semver']['type'] }}"
+  register: release_tag
+
+- debug: var=release_tag
+
+- name: Create and push new release tag
+  shell: "git tag -a {{ release_tag.version }} -m \"Version {{ release_tag.version }} released by {{ release['releaser']}}\" && git push origin {{ release_tag.version }}"
+  args:
+    chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
+  ignore_errors: yes
+
+- name: Create and checkout new branch
+  shell: "git checkout tags/{{ release_tag.version }} -b release-{{ release_tag.version }}"
+  args:
+    chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
+  ignore_errors: yes
 
 - name: Get release directories to remove
   shell: "/bin/ls -X1 | grep '^2' | sort | awk \"NR<=$(expr $(ls -1 | grep '^2' | wc -l) - {{ release['max_keep'] }})\""
