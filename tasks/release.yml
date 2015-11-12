@@ -33,7 +33,9 @@
   semver:
     version: "{{ current_tag.stdout }}"
     type: "{{ release['semver']['type'] }}"
+    prefix: "v"
   register: release_tag
+  ignore_errors: yes
 
 - debug: var=release_tag
 
@@ -42,12 +44,14 @@
   args:
     chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
   ignore_errors: yes
+  when: release_tag.version is defined
 
 - name: Create and checkout new branch
   shell: "git checkout tags/{{ release_tag.version }} -b release-{{ release_tag.version }}"
   args:
     chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
   ignore_errors: yes
+  when: release_tag.version is defined  
 
 - name: Get release directories to remove
   shell: "/bin/ls -X1 | grep '^2' | sort | awk \"NR<=$(expr $(ls -1 | grep '^2' | wc -l) - {{ release['max_keep'] }})\""
