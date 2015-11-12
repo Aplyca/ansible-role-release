@@ -33,17 +33,14 @@
   register: release_tag
   ignore_errors: yes
 
-- name: Create and push new release tag
+- name: Create and push and checkout new release tag
   shell: "git tag -a {{ release_tag.version }} -m \"Version {{ release_tag.version }} released by {{ release['releaser']}}\" && git push origin {{ release_tag.version }}"
   args:
     chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
-  ignore_errors: yes
-  when: release_tag.version is defined
-
-- name: Create and checkout new branch
-  shell: "git checkout tags/{{ release_tag.version }} -b release-{{ release_tag.version }}"
-  args:
-    chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
+  with_items:
+    - "git tag -a {{ release_tag.version }} -m \"Version {{ release_tag.version }} released by {{ release['releaser']}}\""
+    - "git push origin {{ release_tag.version }}"
+    - "git checkout tags/{{ release_tag.version }} -b release-{{ release_tag.version }}"
   ignore_errors: yes
   when: release_tag.version is defined
 
@@ -61,4 +58,4 @@
 
 - name: Released new version
   debug:
-    msg: "Type: {{ release['semver']['type'] }}, Previous: {{ current_tag.stdout }}, New: {{ release_tag.version }}"  
+    msg: "Type: {{ release['semver']['type'] }}, Previous: {{ current_tag.stdout }}, New: {{ release_tag.version }}"
