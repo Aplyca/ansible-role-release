@@ -1,6 +1,6 @@
 ---
 release:
-  version: v1.0.0
   during_commands:
-    - name: "List files"
-      command: "ls -la"
+    - "ls -la"
+  after_commands:
+    - "ls -la"

@@ -4,6 +4,6 @@ dependencies:
 
 test:
   pre:
-    - sudo ln -s ansible-role-aws ../aplyca.Release
+    - sudo ln -s ansible-role-release ../aplyca.Release
   override:
     - tests/tests.sh

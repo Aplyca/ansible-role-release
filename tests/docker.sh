@@ -1,8 +1,8 @@
 #!/bin/bash
-# test AWS provisiones with Ansible
+# test Release provisiones with Ansible
 
-ANSIBLE_ROLE="aplyca.AWS"
+ANSIBLE_ROLE="aplyca.Release"
 DOCKER_IMAGE="ansible/ubuntu14.04-ansible"
 
-docker run -it --name test-aws -v `pwd`:/tmp/${ANSIBLE_ROLE} ${DOCKER_IMAGE} /tmp/${ANSIBLE_ROLE}/tests/tests.sh
-docker stop test-aws && docker rm test-aws
+docker run -it --name test-release -v `pwd`:/tmp/${ANSIBLE_ROLE} ${DOCKER_IMAGE} /tmp/${ANSIBLE_ROLE}/tests/tests.sh
+docker stop test-release && docker rm test-release

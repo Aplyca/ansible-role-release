@@ -1,31 +1,65 @@
 ---
-- name: "Release variables:"
-  debug: var=release
+#- name: "Release variables:"
+#  debug: var=release
 
-- name: Create release scritps directory
-  sudo: yes
+- name: Check if App is properly installed
+  stat:
+    path: "{{ release['target'] }}/{{ release['project'] }}/app"
+  register: app_root
+  failed_when: not (app_root.stat.islnk is defined and app_root.stat.islnk)
+
+- name: Check if App is a git repo
+  stat:
+    path: "{{ release['target'] }}/{{ release['project'] }}/app/.git"
+  register: app_repo
+  failed_when: not (app_repo.stat.isdir is defined and app_repo.stat.isdir)
+
+- name: Get new release directory
+  shell: "date +\"%Y%m%d%H%M%S\""
+  register: release_dir
+  changed_when: False
+
+- name: Create release directory
   file:
-   path: "{{ release['scripts_path'] }}"
+   path: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
    state: directory
-   mode: 0755
-   owner: "{{ ansible_user_id }}"
 
 - name: Create exclude list file
   template:
     src: exclude_list.txt.j2
-    dest: "{{ release['scripts_path'] }}/exclude_list.txt"
-    mode: 0744
+    dest: "/tmp/exclude_list.txt"
 
-- name: Create release script
-  template:
-    src: release.sh.j2
-    dest: "{{ release['scripts_path'] }}/release.sh"
-    mode: 0744
-
-- name: "Execute release version"
-  shell: "{{ release['scripts_path'] }}/release.sh {{ release['version'] }}"
+- name: Copy App to new release directory
+  shell: "rsync -aA --exclude-from '/tmp/exclude_list.txt' app/ releases/{{ release_dir.stdout }}/"
   args:
     chdir: "{{ release['target'] }}/{{ release['project'] }}"
-  register: result
 
-- debug: var=result
+- name: Get current branch
+  shell: "git rev-parse --abbrev-ref HEAD"
+  args:
+    chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
+  register: current_branch
+  changed_when: False
+
+- name: Get latest code
+  shell: "{{ item }}"
+  args:
+    chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
+  with_items:
+    - git checkout master
+    - git fetch --all -p
+    - git pull
+
+- name: Check if new code exists to release
+  shell: "git diff {{ current_branch.stdout }}"
+  args:
+    chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
+  register: new_code
+  ignore_errors: yes
+  changed_when: False
+
+- include: abort.yml
+  when: new_code.stdout == "" or new_code.stderr != ""
+
+- include: release.yml
+  when: new_code.stdout != "" and new_code.stderr == ""

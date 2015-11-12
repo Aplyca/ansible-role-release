@@ -1,0 +1,36 @@
+---
+- name: "Run during commands"
+  shell: "{{ item }}"
+  args:
+    chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
+  with_items: release['during_commands']
+
+- name: Publish new release
+  shell: "{{ item }}"
+  args:
+    chdir: "{{ release['target'] }}/{{ release['project'] }}"
+  with_items:
+    - "ln -sf releases/{{ release_dir.stdout }} latest"
+    - "mv -T latest app"
+
+- name: Run after commands
+  shell: "{{ item }}"
+  args:
+    chdir: "{{ release['target'] }}/{{ release['project'] }}"
+  with_items: release['after_commands']
+  ignore_errors: yes
+
+- include: semver.yml
+  when: release.semver.enabled
+
+- name: Get release directories to remove
+  shell: "/bin/ls -X1 | grep '^2' | sort | awk \"NR<=$(expr $(ls -1 | grep '^2' | wc -l) - {{ release['max_keep'] }})\""
+  args:
+    chdir: "{{ release['target'] }}/{{ release['project'] }}/releases"
+  register: remove_dirs
+
+- name: Removing surplus directories
+  file:
+   path: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ item }}"
+   state: absent
+  with_items: remove_dirs.stdout_lines
