@@ -4,23 +4,34 @@
 
 - name: Check if App is properly installed
   stat:
+    path: "{{ release['target'] }}/{{ release['project'] }}/app"
+  register: app_root
+  failed_when: not (app_root.stat.islnk is defined and app_root.stat.islnk)
+
+- name: Check if App is a git repo
+  stat:
     path: "{{ release['target'] }}/{{ release['project'] }}/app/.git"
-  register: app_dir
-  failed_when: not (app_dir.stat.isdir is defined and app_dir.stat.isdir)
+  register: app_repo
+  failed_when: not (app_repo.stat.isdir is defined and app_repo.stat.isdir)
 
 - name: Get new release directory
   shell: "date +\"%Y%m%d%H%M%S\""
   register: release_dir
+  changed_when: False
 
 - name: Create release directory
   file:
    path: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
    state: directory
 
-# TODO: Add exclude directories
+- name: Create exclude list file
+  template:
+    src: exclude_list.txt.j2
+    dest: "/tmp/exclude_list.txt"
+    mode: 0744
 
 - name: Copy App to new release directory
-  shell: "rsync -aA  app/ releases/{{ release_dir.stdout }}/"
+  shell: "rsync -aA --exclude-from '/tmp/exclude_list.txt' app/ releases/{{ release_dir.stdout }}/"
   args:
     chdir: "{{ release['target'] }}/{{ release['project'] }}"
 
@@ -29,8 +40,7 @@
   args:
     chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
   register: current_branch
-
-- debug: var=current_branch
+  changed_when: False
 
 - name: Get latest code
   shell: "{{ item }}"
@@ -47,19 +57,10 @@
     chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
   register: new_code
   ignore_errors: yes
+  changed_when: False
 
 - include: release.yml
-  when: new_code.stdout != "" and new_code.sterr == ""
+  when: new_code.stdout != "" and new_code.stderr == ""
 
 - include: abort.yml
-  when: new_code.stdout == "" or new_code.sterr != ""
-
-- debug: var=new_code
-
-- fail: msg="STOP"
-
-- name: Create exclude list file
-  template:
-    src: exclude_list.txt.j2
-    dest: "/tmp/exclude_list.txt"
-    mode: 0744
+  when: new_code.stdout == "" or new_code.stderr != ""
