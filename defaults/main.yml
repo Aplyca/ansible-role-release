@@ -2,8 +2,11 @@
 release:
   target: /tmp
   project: myapp
-  version: v1.0.0
+  semver:
+    enabled: true
+    type: patch
   during_commands: []
   after_commands: []
   sync_exclude: []
   max_keep: 3
+  releaser: "Anonymous"
