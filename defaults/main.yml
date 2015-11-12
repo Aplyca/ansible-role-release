@@ -6,3 +6,4 @@ release:
   during_commands: []
   after_commands: []
   sync_exclude: []
+  max_keep: 3

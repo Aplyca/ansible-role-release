@@ -1,9 +1,6 @@
 ---
-- name: "Aborting - removing new release directory"
+- name: "ABORTING: Nothing to release, removing new release directory"
   file:
    path: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
    state: absent
   when: new_code.stdout == "" or new_code.sterr != ""
-
-- fail: msg="Aborting - Nothing to release"
-  when: new_code.stdout == "" or new_code.sterr != ""    
