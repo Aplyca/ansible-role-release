@@ -1,0 +1,41 @@
+---
+- name: Get latest tag
+  shell: "git describe --dirty --always --abbrev=0 --tags 2>&1 | grep 'v'"
+  args:
+    chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
+  register: current_tag
+  ignore_errors: yes
+
+- name: Check if new tag should be generated
+  shell: "git diff {{ current_tag.stdout }}"
+  args:
+    chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
+  register: if_new_tag
+  ignore_errors: yes
+  changed_when: False
+  when: current_tag.stdout != "" or current_tag.stderr == ""
+
+- name: Generate new release tag version
+  semver:
+    version: "{{ current_tag.stdout }}"
+    type: "{{ release['semver']['type'] }}"
+    prefix: "v"
+  register: release_tag
+  ignore_errors: yes
+  when: if_new_tag.stdout != "" and if_new_tag.stderr == ""
+
+- name: Create, push and checkout new release tag
+  shell: "git tag -a {{ release_tag.version }} -m \"Version {{ release_tag.version }} released by {{ release['releaser']}}\" && git push origin {{ release_tag.version }}"
+  args:
+    chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
+  with_items:
+    - "git tag -a {{ release_tag.version }} -m \"Version {{ release_tag.version }} released by {{ release['releaser']}}\""
+    - "git push origin {{ release_tag.version }}"
+    - "git checkout tags/{{ release_tag.version }} -b release-{{ release_tag.version }}"
+  ignore_errors: yes
+  when: release_tag.version is defined
+
+- name: Released new version
+  debug:
+    msg: "Type: {{ release['semver']['type'] }}, Previous: {{ current_tag.stdout }}, New: {{ release_tag.version }}"
+  when: release_tag.version is defined
