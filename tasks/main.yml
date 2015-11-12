@@ -1,6 +1,6 @@
 ---
-- name: "Release variables:"
-  debug: var=release
+#- name: "Release variables:"
+#  debug: var=release
 
 - name: Check if App is properly installed
   stat:
@@ -59,8 +59,8 @@
   ignore_errors: yes
   changed_when: False
 
-- include: release.yml
-  when: new_code.stdout != "" and new_code.stderr == ""
-
 - include: abort.yml
   when: new_code.stdout == "" or new_code.stderr != ""
+
+- include: release.yml
+  when: new_code.stdout != "" and new_code.stderr == ""

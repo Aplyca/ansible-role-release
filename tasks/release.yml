@@ -1,7 +1,5 @@
 ---
-- debug: msg="New code to release"
-
-- name: Run during commands
+- name: "Run during commands"
   shell: "{{ item }}"
   args:
     chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
@@ -27,17 +25,13 @@
     chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
   register: current_tag
 
-- debug: var=current_tag
-
-- name: Generate new release tag
+- name: Generate new release tag version
   semver:
     version: "{{ current_tag.stdout }}"
     type: "{{ release['semver']['type'] }}"
     prefix: "v"
   register: release_tag
   ignore_errors: yes
-
-- debug: var=release_tag
 
 - name: Create and push new release tag
   shell: "git tag -a {{ release_tag.version }} -m \"Version {{ release_tag.version }} released by {{ release['releaser']}}\" && git push origin {{ release_tag.version }}"
@@ -51,7 +45,7 @@
   args:
     chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
   ignore_errors: yes
-  when: release_tag.version is defined  
+  when: release_tag.version is defined
 
 - name: Get release directories to remove
   shell: "/bin/ls -X1 | grep '^2' | sort | awk \"NR<=$(expr $(ls -1 | grep '^2' | wc -l) - {{ release['max_keep'] }})\""
@@ -64,3 +58,7 @@
    path: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ item }}"
    state: absent
   with_items: remove_dirs.stdout_lines
+
+- name: Released new version
+  debug:
+    msg: "Type: {{ release['semver']['type'] }}, Previous: {{ current_tag.stdout }}, New: {{ release_tag.version }}"  

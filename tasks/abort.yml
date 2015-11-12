@@ -3,4 +3,3 @@
   file:
    path: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
    state: absent
-  when: new_code.stdout == "" or new_code.sterr != ""
