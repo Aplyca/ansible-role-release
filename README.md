@@ -46,6 +46,7 @@ Using Vagrant:
 ```bash
 tests/vagrant.sh
 ```
+
 Using Docker:
 
 ```bash

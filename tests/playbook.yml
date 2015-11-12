@@ -1,10 +1,15 @@
 ---
 - hosts: all
+  gather_facts: no
   tasks:
-    - name: Test if release scripts exists
+    - name: Check if App is properly installed
       stat:
-        path: "{{ release['scripts_path'] }}/release.sh"
-      register: release
+        path: "/tmp/myapp/app"
+      register: app_root
+      failed_when: not (app_root.stat.islnk is defined and app_root.stat.islnk)
 
-    - fail: msg="Whoops! release script dos not exist"
-      when: release.stat.isfile is defined and release.stat.isfile
+    - name: Check if App is a git repo
+      stat:
+        path: "/tmp/myapp/app/.git"
+      register: app_repo
+      failed_when: not (app_repo.stat.isdir is defined and app_repo.stat.isdir)
