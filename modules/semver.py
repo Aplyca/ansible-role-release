@@ -1,9 +1,10 @@
 #!/usr/bin/python
 
 def main():
+    types = ['major', 'minor', 'patch']
     module = AnsibleModule(
         argument_spec = dict(
-            type=dict(default="patch", required=False, choices=['patch', 'minor', 'major']),
+            type=dict(default="patch", required=False, choices=types),
             version=dict(required=True),
             prefix=dict(required=False),
         ),
@@ -15,7 +16,12 @@ def main():
     version = module.params['version']
 
     try:
-        new_version = "1.0.1"
+        version_list = dict(zip(types, version.lstrip(prefix).split('.')))
+        if not version or len(version_list) != len(types):
+            raise Exception('Invalid version format', version)
+
+        version_list[type] = str(int(version_list[type]) + 1)
+        new_version = prefix+'.'.join(list(version_list.values()))
 
     except Exception as error:
         module.fail_json(msg=error.args[0])
