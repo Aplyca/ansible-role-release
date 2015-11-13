@@ -6,7 +6,7 @@ def main():
         argument_spec = dict(
             type=dict(default="patch", required=False, choices=types),
             version=dict(required=True),
-            prefix=dict(required=False),
+            prefix=dict(required=False, default=""),
         ),
         supports_check_mode=False
     )
@@ -16,12 +16,19 @@ def main():
     version = module.params['version']
 
     try:
-        version_list = dict(zip(types, version.lstrip(prefix).split('.')))
-        if not version or len(version_list) != len(types):
+        if not version:
             raise Exception('Invalid version format', version)
 
-        version_list[type] = str(int(version_list[type]) + 1)
-        new_version = prefix+'.'.join(list(version_list.values()))
+        version_dict = dict(zip(types, version.lstrip(prefix).split('.')))
+        version_dict[type] = str(int(version_dict[type]) + 1)
+
+        if type != "patch":
+            version_dict["patch"] = "0"
+
+        if type == "major":
+            version_dict["minor"] = "0"
+
+        new_version = prefix+'.'.join(list(version_dict.values()))
 
     except Exception as error:
         module.fail_json(msg=error.args[0])
