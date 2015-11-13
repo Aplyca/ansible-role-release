@@ -1,6 +1,6 @@
 ---
-- name: "Release variables:"
-  debug: var=release
+#- name: "Release variables:"
+#  debug: var=release
 
 - name: Check if App is properly installed
   stat:
@@ -13,6 +13,8 @@
     path: "{{ release['target'] }}/{{ release['project'] }}/app/.git"
   register: app_repo
   failed_when: not (app_repo.stat.isdir is defined and app_repo.stat.isdir)
+
+# TODO: Check if App directory is clean (not modified/untracked files, use "git status" )
 
 - name: Get new release directory
   shell: "date +\"%Y%m%d%H%M%S\""
@@ -51,7 +53,7 @@
     - git pull
 
 - name: Check if new code exists to release
-  shell: "if [[ $(git diff {{ current_branch.stdout }}) ]]; then echo 'New code'; fi"
+  shell: "branchdiff=$(git diff {{ current_branch.stdout }}) && if [ ! -z \"$branchdiff\" -a \"$branchdiff\" != \"\" ]; then echo 'New code'; fi"
   args:
     chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
   register: new_code
