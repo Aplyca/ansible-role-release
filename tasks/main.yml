@@ -51,7 +51,7 @@
     - git pull
 
 - name: Check if new code exists to release
-  shell: "git diff {{ current_branch.stdout }}"
+  shell: "if [[ $(git diff {{ current_branch.stdout }}) ]]; then echo 'New code'; fi"
   args:
     chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
   register: new_code

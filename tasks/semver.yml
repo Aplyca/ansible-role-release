@@ -6,8 +6,10 @@
   register: current_tag
   ignore_errors: yes
 
+
+
 - name: Check if new tag should be generated
-  shell: "git diff {{ current_tag.stdout }}"
+  shell: "if [[ $(git diff {{ current_tag.stdout }}) ]]; then echo 'New tag'; fi"
   args:
     chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
   register: if_new_tag
@@ -31,7 +33,7 @@
   with_items:
     - "git tag -a {{ release_tag.version }} -m \"Version {{ release_tag.version }} released by {{ release['releaser']}}\""
     - "git checkout tags/{{ release_tag.version }} -b release-{{ release_tag.version }}"
-    - "git push origin {{ release_tag.version }}"    
+    - "git push origin {{ release_tag.version }}"
   ignore_errors: yes
   when: release_tag.version is defined
 
