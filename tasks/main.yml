@@ -1,6 +1,6 @@
 ---
-#- name: "Release variables:"
-#  debug: var=release
+- name: "Release variables:"
+  debug: var=release
 
 - name: Check if App is properly installed
   stat:
@@ -27,10 +27,10 @@
 - name: Create exclude list file
   template:
     src: exclude_list.txt.j2
-    dest: "/tmp/exclude_list.txt"
+    dest: "/tmp/{{ release['project'] }}-exclude_list.txt"
 
 - name: Copy App to new release directory
-  shell: "rsync -aA --exclude-from '/tmp/exclude_list.txt' app/ releases/{{ release_dir.stdout }}/"
+  shell: "rsync -aA --exclude-from '/tmp/{{ release['project'] }}-exclude_list.txt' app/ releases/{{ release_dir.stdout }}/"
   args:
     chdir: "{{ release['target'] }}/{{ release['project'] }}"
 
