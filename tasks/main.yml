@@ -44,13 +44,11 @@
   changed_when: False
 
 - name: Get latest code
-  shell: "{{ item }}"
-  args:
-    chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
-  with_items:
-    - git checkout master
-    - git fetch --all -p
-    - git pull
+  git:
+    dest: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
+    force: yes
+    repo: "{{ release['repo'] }}"
+    version: master
 
 - name: Check if new code exists to release
   shell: "branchdiff=$(git diff {{ current_branch.stdout }}) && if [ ! -z \"$branchdiff\" -a \"$branchdiff\" != \"\" ]; then echo 'New code'; fi"

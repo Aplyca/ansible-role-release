@@ -37,8 +37,6 @@ Dependencies
 
 - Git
 
-None.
-
 Testing
 -------
 Using Vagrant:

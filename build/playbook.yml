@@ -6,8 +6,9 @@
   pre_tasks:
     - apt: name=git
       become: yes
+    - shell: "git config --global user.email 'anonymous@example.com' && git config --global user.name 'Anonymous'"
     - file: path="/tmp/myapp/releases/initial" state=directory
     - file: dest=/tmp/myapp/app src=releases/initial state=link
-    - git: repo=https://github.com/Aplyca/ansible-role-release.git dest="/tmp/myapp/releases/initial" version=master
+    - git: repo=https://github.com/Aplyca/ansible-role-release.git dest="/tmp/myapp/releases/initial" version=script
   roles:
     - aplyca.Release

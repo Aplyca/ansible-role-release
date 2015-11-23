@@ -1,9 +1,10 @@
 ---
 release:
+  repo: https://github.com/Aplyca/ansible-role-release.git
   target: /tmp
   project: myapp
   semver:
-    enabled: true
+    enabled: false
     type: patch
   during_commands: []
   after_commands: []
