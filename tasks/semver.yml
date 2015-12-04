@@ -44,5 +44,14 @@
 
 - name: Released new version
   debug:
-    msg: "Type: {{ release['semver']['type'] }}, Previous: {{ latest_tag.stdout }}, New: {{ release_tag.version }}"
+    msg: "Type: {{ release['semver']['type'] }}, Previous: {{ latest_tag.stdout }}, New: {{ release_tag.version }}, Diff: {{ release['semver']['diff_url'] }}/{{ latest_tag.stdout }}...{{ release_tag.version }}"
+  when: release_tag.version is defined
+  
+- name: Send notification to Slack
+  slack:
+    token: "{{ release.slack.token }}"
+    msg: "Released new version. Type: *{{ release.semver.type }}*, Previous: *{{ latest_tag.stdout }}*, New: *{{ release_tag.version }}*, Diff: {{ release.semver.diff_url }}/{{ latest_tag.stdout }}...{{ release_tag.version }}"
+    username: "{{ release.slack.username }}"
+    icon_emoji: "{{ release.slack.icon_emoji }}"
+    channel: "{{ release.slack.channel }}"
   when: release_tag.version is defined

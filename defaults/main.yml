@@ -6,8 +6,15 @@ release:
   semver:
     enabled: false
     type: patch
+    diff_url: https://github.com
   during_commands: []
   after_commands: []
   sync_exclude: []
   max_keep: 3
   releaser: "Anonymous"
+  slack:
+    token: TOKEN/OF/SLACK
+    username: "Release user"
+    icon_emoji: slack
+    channel: general
+    intro: "Released new version"
