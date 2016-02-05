@@ -2,7 +2,7 @@
 - hosts: all
   gather_facts: no
   vars_files:
-    - settings.yml
+    - build/settings.yml
   pre_tasks:
     - apt: name=git
       become: yes

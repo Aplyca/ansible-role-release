@@ -17,4 +17,5 @@ release:
     username: "Release user"
     icon_emoji: slack
     channel: general
-    intro: "Released new version"
+    message: "New version released on App"
+    description: "New version released"    
