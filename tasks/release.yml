@@ -3,7 +3,7 @@
   shell: "{{ item }}"
   args:
     chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
-  with_items: release['during_commands']
+  with_items: "{{ release['during_commands'] }}"
 
 - name: Publish new release
   shell: "{{ item }}"
@@ -17,7 +17,7 @@
   shell: "{{ item }}"
   args:
     chdir: "{{ release['target'] }}/{{ release['project'] }}"
-  with_items: release['after_commands']
+  with_items: "{{ release['after_commands'] }}"
   ignore_errors: yes
 
 - include: semver.yml
@@ -33,4 +33,4 @@
   file:
    path: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ item }}"
    state: absent
-  with_items: remove_dirs.stdout_lines
+  with_items: "{{ remove_dirs.stdout_lines }}"
