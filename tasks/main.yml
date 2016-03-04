@@ -1,7 +1,4 @@
 ---
-- debug: var=release
-  tags: vars
-
 - name: Check if App is properly installed
   stat:
     path: "{{ release['target'] }}/{{ release['project'] }}/app"
