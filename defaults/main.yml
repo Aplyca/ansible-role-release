@@ -7,6 +7,7 @@ release:
     enabled: false
     type: patch
     diff_url: https://github.com
+    publish: true
   during_commands: []
   after_commands: []
   sync_exclude: []
@@ -18,4 +19,4 @@ release:
     icon_emoji: slack
     channel: general
     message: "New version released on App"
-    description: "New version released"    
+    description: "New version released"

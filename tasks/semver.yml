@@ -2,14 +2,14 @@
 - name: Get latest tag
   shell: "git describe --dirty --always --abbrev=0 --tags 2>&1 | grep 'v'"
   args:
-    chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
+    chdir: "{{ release['target'] }}/{{ release.project }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
   register: latest_tag
   ignore_errors: yes
 
 - name: Check if new tag should be generated
   shell: "tagdiff=$(git diff tags/{{ latest_tag.stdout }}) && if [ ! -z \"$tagdiff\" -a \"$tagdiff\" != \"\" ]; then echo 'New tag'; fi"
   args:
-    chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
+    chdir: "{{ release['target'] }}/{{ release.project }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
   register: if_new_tag
   ignore_errors: yes
   changed_when: False
@@ -27,32 +27,38 @@
 - name: Checkout latest tag
   shell: "git checkout tags/{{ latest_tag.stdout }} -b release-{{ latest_tag.stdout }}"
   args:
-    chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
+    chdir: "{{ release['target'] }}/{{ release.project }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
   ignore_errors: yes
   when: release_tag.version is not defined and latest_tag.stdout != ""
 
-- name: Create, push and checkout new release tag
+- name: Create and checkout new release tag
   shell: "{{ item }}"
   args:
-    chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
+    chdir: "{{ release['target'] }}/{{ release.project }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
   with_items:
     - "git tag -a {{ release_tag.version }} -m \"Version {{ release_tag.version }} released by {{ release['releaser']}}\""
     - "git checkout tags/{{ release_tag.version }} -b release-{{ release_tag.version }}"
-    - "git push origin {{ release_tag.version }}"
   ignore_errors: yes
   when: release_tag.version is defined
+
+- name: Publish new release tag
+  shell: "git push origin {{ release_tag.version }}"
+  args:
+    chdir: "{{ release['target'] }}/{{ release.project }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
+  ignore_errors: yes
+  when: release_tag.version is defined and release.semver.publish
 
 - name: Released new version
   debug:
     msg: "Type: {{ release['semver']['type'] }}, Previous: {{ latest_tag.stdout }}, New: {{ release_tag.version }}, Diff: {{ release['semver']['diff_url'] }}/{{ latest_tag.stdout }}...{{ release_tag.version }}"
   when: release_tag.version is defined
-  
+
 - name: Send notification to Slack
   slack:
     token: "{{ release.slack.token }}"
     msg: "{{ release.slack.message }}"
     attachments:
-      - title: "Release new version"
+      - title: "Release info"
         text: "{{ release.slack.description }}"
         color: good
         fields:
@@ -71,4 +77,4 @@
     username: "{{ release.slack.username }}"
     channel: "{{ release.slack.channel }}"
     icon_emoji: "{{ release.slack.icon_emoji }}"
-  when: release.slack.token is defined and release_tag.version is defined
+  when: release.slack.token is defined and release_tag.version is defined and release.semver.publish

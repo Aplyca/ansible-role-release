@@ -1,13 +1,13 @@
 ---
 - name: Check if App is properly installed
   stat:
-    path: "{{ release['target'] }}/{{ release['project'] }}/app"
+    path: "{{ release.target }}/{{ release.project }}/{{ release.release_symlink }}"
   register: app_root
   failed_when: not (app_root.stat.islnk is defined and app_root.stat.islnk)
 
 - name: Check if App is a git repo
   stat:
-    path: "{{ release['target'] }}/{{ release['project'] }}/app/.git"
+    path: "{{ release.target }}/{{ release.project }}/{{ release.release_symlink }}/.git"
   register: app_repo
   failed_when: not (app_repo.stat.isdir is defined and app_repo.stat.isdir)
 
@@ -20,29 +20,29 @@
 
 - name: Create release directory
   file:
-   path: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
+   path: "{{ release.target }}/{{ release.project }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
    state: directory
 
 - name: Create exclude list file
   template:
     src: exclude_list.txt.j2
-    dest: "/tmp/{{ release['project'] }}-exclude_list.txt"
+    dest: "/tmp/{{ release.project }}-exclude_list.txt"
 
 - name: Copy App to new release directory
-  shell: "rsync -aA --exclude-from '/tmp/{{ release['project'] }}-exclude_list.txt' app/ releases/{{ release_dir.stdout }}/"
+  shell: "rsync -aA --exclude-from '/tmp/{{ release.project }}-exclude_list.txt' {{ release.release_symlink }}/ {{ release.release_dirname }}/{{ release_dir.stdout }}/"
   args:
-    chdir: "{{ release['target'] }}/{{ release['project'] }}"
+    chdir: "{{ release.target }}/{{ release.project }}"
 
 - name: Get current branch
   shell: "git rev-parse --abbrev-ref HEAD"
   args:
-    chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
+    chdir: "{{ release.target }}/{{ release.project }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
   register: current_branch
   changed_when: False
 
 - name: Get latest code
   git:
-    dest: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
+    dest: "{{ release.target }}/{{ release.project }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
     force: yes
     repo: "{{ release['repo'] }}"
     version: master
@@ -50,7 +50,7 @@
 - name: Check if new code exists to release
   shell: "branchdiff=$(git diff {{ current_branch.stdout }}) && if [ ! -z \"$branchdiff\" -a \"$branchdiff\" != \"\" ]; then echo 'New code'; fi"
   args:
-    chdir: "{{ release['target'] }}/{{ release['project'] }}/releases/{{ release_dir.stdout }}"
+    chdir: "{{ release.target }}/{{ release.project }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
   register: new_code
   ignore_errors: yes
   changed_when: False
