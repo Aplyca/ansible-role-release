@@ -1,5 +1,7 @@
 ---
 - name: "ABORTING: Nothing to release, removing new release directory"
   file:
-   path: "{{ release.target }}/{{ release.project }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
-   state: absent
+    path: "{{ release.target }}/{{ release.project }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
+    state: absent
+  async: 3600
+  poll: 0

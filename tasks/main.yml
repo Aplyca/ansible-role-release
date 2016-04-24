@@ -23,13 +23,8 @@
    path: "{{ release.target }}/{{ release.project }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
    state: directory
 
-- name: Create exclude list file
-  template:
-    src: exclude_list.txt.j2
-    dest: "/tmp/{{ release.project }}-exclude_list.txt"
-
 - name: Copy App to new release directory
-  shell: "rsync -aA --exclude-from '/tmp/{{ release.project }}-exclude_list.txt' {{ release.release_symlink }}/ {{ release.release_dirname }}/{{ release_dir.stdout }}/"
+  shell: "rsync -aAX --inplace {% for path in release.sync_exclude %}--exclude {{ path }} {% endfor %}{{ release.release_symlink }}/ {{ release.release_dirname }}/{{ release_dir.stdout }}/"
   args:
     chdir: "{{ release.target }}/{{ release.project }}"
 

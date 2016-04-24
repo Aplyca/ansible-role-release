@@ -27,7 +27,7 @@
 - name: Checkout latest tag
   shell: "git checkout tags/{{ latest_tag.stdout }} -b release-{{ latest_tag.stdout }}"
   args:
-    chdir: "{{ release['target'] }}/{{ release.project }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
+    chdir: "{{ release.target }}/{{ release.project }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
   ignore_errors: yes
   when: release_tag.version is not defined and latest_tag.stdout != ""
 
@@ -36,8 +36,8 @@
   args:
     chdir: "{{ release['target'] }}/{{ release.project }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
   with_items:
-    - "git tag -a {{ release_tag.version }} -m \"Version {{ release_tag.version }} released by {{ release['releaser']}}\""
-    - "git checkout tags/{{ release_tag.version }} -b release-{{ release_tag.version }}"
+    - "git tag -f -a {{ release_tag.version }} -m \"Version {{ release_tag.version }} released by {{ release['releaser']}}\""
+    - "git checkout tags/{{ release_tag.version }} -B release-{{ release_tag.version }}"
   ignore_errors: yes
   when: release_tag.version is defined
 
@@ -47,6 +47,8 @@
     chdir: "{{ release['target'] }}/{{ release.project }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
   ignore_errors: yes
   when: release_tag.version is defined and release.semver.publish
+  async: 3600
+  poll: 0
 
 - name: Released new version
   debug:
@@ -58,7 +60,7 @@
     token: "{{ release.slack.token }}"
     msg: "{{ release.slack.message }}"
     attachments:
-      - title: "Release info"
+      - title: "Version {{ release_tag.version }} released by {{ release.releaser }} on {{ release.project }}"
         text: "{{ release.slack.description }}"
         color: good
         fields:
