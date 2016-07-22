@@ -24,7 +24,7 @@
    state: directory
 
 - name: Copy App to new release directory
-  shell: "rsync -aAX --inplace {% for path in release.sync_exclude %}--exclude {{ path }} {% endfor %}{{ release.release_symlink }}/ {{ release.release_dirname }}/{{ release_dir.stdout }}/"
+  shell: "rsync -aAX --inplace {% for path in release.sync_exclude %}--exclude '{{ path }}' {% endfor %}{{ release.release_symlink }}/ {{ release.release_dirname }}/{{ release_dir.stdout }}/"
   args:
     chdir: "{{ release.target }}/{{ release.project }}"
 
