@@ -68,24 +68,18 @@
     token: "{{ release.slack.token }}"
     msg: "{{ release.slack.message }}"
     attachments:
-      - title: "Version {{ release_tag.version }} released by {{ release.releaser }} on {{ release.project }}"
+      - title: "{{ release.semver.type | title() }} version {{ release_tag.version }} released by {{ release.releaser }} on {{ release.project | upper() }}"
         text: "{{ release.slack.description }}"
         color: good
         fields:
-          - title: "Type"
-            value: "{{ release.semver.type }}"
+          - title: "Version change:"
+            value: "{{ release.semver.type | title() }} version, from {{ latest_tag.stdout }} to {{ release_tag.version }}"
             short: true
-          - title: "Previous version"
-            value: "{{ latest_tag.stdout }}"
+          - title: "See changes:"
+            value: "<{{ release.semver.diff_url }}/{{ latest_tag.stdout }}...{{ release_tag.version }}|{{ latest_tag.stdout }}...{{ release_tag.version }}>"
             short: true
-          - title: "New version"
-            value: "{{ release_tag.version }}"
-            short: true
-          - title: "Diff"
-            value: "{{ release.semver.diff_url }}/{{ latest_tag.stdout }}...{{ release_tag.version }}"
-            short: true
-          - title: "Changelog"
-            value: "{{ changelog.stdout }}"
+          - title: "Changelog:"
+            value: "```{{ changelog.stdout }}```"
             short: false            
     username: "{{ release.slack.username }}"
     channel: "{{ release.slack.channel }}"
