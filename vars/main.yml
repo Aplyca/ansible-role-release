@@ -1,4 +1,0 @@
----
-release:
-  release_dirname: releases
-  release_symlink: current  

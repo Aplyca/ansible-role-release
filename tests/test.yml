@@ -1,5 +1,9 @@
 ---
 release:
+  semver:
+    enabled: true
+    publish: false
+    prefix: ""  
   during_commands:
     - "ls -la"
   after_commands:

@@ -1,8 +1,7 @@
 ---
-- hosts: all
+- name: Release code
+  hosts: all
   gather_facts: no
-  vars_files:
-    - build/settings.yml
   pre_tasks:
     - apt: name=git
       become: yes
@@ -11,4 +10,18 @@
     - file: dest=/tmp/myapp/current src=releases/initial state=link
     - git: repo=https://github.com/Aplyca/ansible-role-release.git dest="/tmp/myapp/releases/initial" version=script
   roles:
-    - aplyca.Release
+    - { role: Aplyca.Release, tags: ["release"] }
+  tasks:
+    - debug: var=release
+      tags: vars
+  post_tasks:
+    - name: Check if App is properly installed
+      stat:
+        path: "/tmp/myapp/current"
+      register: app_root
+      failed_when: not (app_root.stat.islnk is defined and app_root.stat.islnk)
+    - name: Check if App is a git repo
+      stat:
+        path: "/tmp/myapp/current/.git"
+      register: app_repo
+      failed_when: not (app_repo.stat.isdir is defined and app_repo.stat.isdir)

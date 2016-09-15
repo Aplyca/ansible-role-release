@@ -1,15 +1,15 @@
 ---
 - name: Get latest tag
-  shell: "git describe --dirty --always --abbrev=0 --tags 2>&1 | grep 'v'"
+  shell: "git describe --dirty --always --abbrev=0 --tags 2>&1 | grep '{{ release.semver.prefix }}'"
   args:
-    chdir: "{{ release['target'] }}/{{ release.project }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
+    chdir: "{{ release.target }}/{{ release.project }}/{{ release.release_symlink }}"
   register: latest_tag
   ignore_errors: yes
 
 - name: Check if new tag should be generated
   shell: "tagdiff=$(git diff tags/{{ latest_tag.stdout }}) && if [ ! -z \"$tagdiff\" -a \"$tagdiff\" != \"\" ]; then echo 'New tag'; fi"
   args:
-    chdir: "{{ release['target'] }}/{{ release.project }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
+    chdir: "{{ release.target }}/{{ release.project }}/{{ release.release_symlink }}"
   register: if_new_tag
   ignore_errors: yes
   changed_when: False
@@ -18,8 +18,8 @@
 - name: Generate new release tag version
   semver:
     version: "{{ latest_tag.stdout }}"
-    type: "{{ release['semver']['type'] }}"
-    prefix: "v"
+    type: "{{ release.semver.type }}"
+    prefix: "{{ release.semver.prefix }}"
   register: release_tag
   ignore_errors: yes
   when: if_new_tag.stdout != "" and if_new_tag.stderr == ""
@@ -27,16 +27,16 @@
 - name: Checkout latest tag
   shell: "git checkout tags/{{ latest_tag.stdout }} -b release-{{ latest_tag.stdout }}"
   args:
-    chdir: "{{ release.target }}/{{ release.project }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
+    chdir: "{{ release.target }}/{{ release.project }}/{{ release.release_symlink }}"
   ignore_errors: yes
   when: release_tag.version is not defined and latest_tag.stdout != ""
 
 - name: Create and checkout new release tag
   shell: "{{ item }}"
   args:
-    chdir: "{{ release['target'] }}/{{ release.project }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
+    chdir: "{{ release.target }}/{{ release.project }}/{{ release.release_symlink }}"
   with_items:
-    - "git tag -f -a {{ release_tag.version }} -m \"Version {{ release_tag.version }} released by {{ release['releaser']}}\""
+    - "git tag -f -a {{ release_tag.version }} -m \"Version {{ release_tag.version }} released by {{ release.releaser }}\""
     - "git checkout tags/{{ release_tag.version }} -B release-{{ release_tag.version }}"
   ignore_errors: yes
   when: release_tag.version is defined
@@ -44,15 +44,26 @@
 - name: Publish new release tag
   shell: "git push origin {{ release_tag.version }}"
   args:
-    chdir: "{{ release['target'] }}/{{ release.project }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
+    chdir: "{{ release.target }}/{{ release.project }}/{{ release.release_symlink }}"
   ignore_errors: yes
   when: release_tag.version is defined and release.semver.publish
   async: 3600
   poll: 0
 
+- name: Get Changelog
+  shell: "git log {{ latest_tag.stdout }}..{{ release_tag.version }} --pretty=format:\"%h %an, %ar: %s\" --no-merges"
+  args:
+    chdir: "{{ release.target }}/{{ release.project }}/{{ release.release_symlink }}"
+  register: changelog
+  ignore_errors: yes
+  when: release_tag.version is defined
+
+- debug: var=changelog
+  when: release_tag.version is defined
+
 - name: Released new version
   debug:
-    msg: "Type: {{ release['semver']['type'] }}, Previous: {{ latest_tag.stdout }}, New: {{ release_tag.version }}, Diff: {{ release['semver']['diff_url'] }}/{{ latest_tag.stdout }}...{{ release_tag.version }}"
+    msg: "Type: {{ release.semver.type }}, Previous: {{ latest_tag.stdout }}, New: {{ release_tag.version }}, Diff: {{ release.semver.diff_url'] }}/{{ latest_tag.stdout }}...{{ release_tag.version }}"
   when: release_tag.version is defined
 
 - name: Send notification to Slack
