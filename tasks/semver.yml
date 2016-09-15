@@ -73,13 +73,10 @@
         color: good
         fields:
           - title: "Version change:"
-            value: "{{ release.semver.type | title() }} version, from {{ latest_tag.stdout }} to {{ release_tag.version }}"
-            short: true
-          - title: "See changes:"
-            value: "<{{ release.semver.diff_url }}/{{ latest_tag.stdout }}...{{ release_tag.version }}|{{ latest_tag.stdout }}...{{ release_tag.version }}>"
+            value: "{{ release.semver.type | title() }} version, <{{ release.semver.diff_url }}/{{ latest_tag.stdout }}...{{ release_tag.version }}|from {{ latest_tag.stdout }} to {{ release_tag.version }}>"
             short: true
           - title: "Changelog:"
-            value: "```{{ changelog.stdout }}```"
+            value: "{{ changelog.stdout }}"
             short: false            
     username: "{{ release.slack.username }}"
     channel: "{{ release.slack.channel }}"
