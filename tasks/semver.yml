@@ -58,9 +58,6 @@
   ignore_errors: yes
   when: release_tag.version is defined
 
-- debug: var=changelog
-  when: release_tag.version is defined
-
 - name: Released new version
   debug:
     msg: "Type: {{ release.semver.type }}, Previous: {{ latest_tag.stdout }}, New: {{ release_tag.version }}, Diff: {{ release.semver.diff_url }}/{{ latest_tag.stdout }}...{{ release_tag.version }}, Changelog: {{ changelog.stdout_lines }}"
@@ -77,19 +74,19 @@
         fields:
           - title: "Type"
             value: "{{ release.semver.type }}"
-            short: "true"
+            short: true
           - title: "Previous version"
             value: "{{ latest_tag.stdout }}"
-            short: "true"
+            short: true
           - title: "New version"
             value: "{{ release_tag.version }}"
-            short: "true"
+            short: true
           - title: "Diff"
             value: "{{ release.semver.diff_url }}/{{ latest_tag.stdout }}...{{ release_tag.version }}"
-            short: "true"
+            short: true
           - title: "Changelog"
             value: "{{ changelog.stdout }}"
-            short: "false"            
+            short: false            
     username: "{{ release.slack.username }}"
     channel: "{{ release.slack.channel }}"
     icon_emoji: "{{ release.slack.icon_emoji }}"
