@@ -11,9 +11,6 @@
     - git: repo=https://github.com/Aplyca/ansible-role-release.git dest="/tmp/myapp/releases/initial" version=script
   roles:
     - { role: Aplyca.Release, tags: ["release"] }
-  tasks:
-    - debug: var=release
-      tags: vars
   post_tasks:
     - name: Check if App is properly installed
       stat:

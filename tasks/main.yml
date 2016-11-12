@@ -1,4 +1,7 @@
 ---
+- debug: var=release verbosity=1
+  tags: vars
+
 - name: Check if App is properly installed
   stat:
     path: "{{ release.target }}/{{ release.project }}/{{ release.release_symlink }}"

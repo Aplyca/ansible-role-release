@@ -10,7 +10,7 @@ Vagrant.configure(2) do |config|
       config_machine.vm.provision :ansible, run: "always" do |provisioner|
         provisioner.playbook = "playbooks.yml"
         provisioner.extra_vars = "tests/test.yml" if File.file?("tests/test.yml")
-        #provisioner.verbose = "vvvv"
+        #provisioner.verbose = "v"
       end
   end
 end
