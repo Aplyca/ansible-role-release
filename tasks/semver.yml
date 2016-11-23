@@ -71,13 +71,19 @@
       - title: "{{ release.semver.type | title() }} version {{ release_tag.version }} released by {{ release.releaser }} on {{ release.project | upper() }}"
         text: "{{ release.slack.description }}"
         color: good
+        title_link: "{{ release.slack.title_link }}"
+        author_name: "{{ release.slack.author_name }}"
+        author_link: "{{ release.slack.author_link }}"
+        author_icon: "{{ release.slack.author_icon }}"
         fields:
           - title: "Version change:"
             value: "{{ release.semver.type | title() }} version, <{{ release.semver.diff_url }}/{{ latest_tag.stdout }}...{{ release_tag.version }}|from {{ latest_tag.stdout }} to {{ release_tag.version }}>"
             short: true
           - title: "Changelog:"
             value: "{{ changelog.stdout }}"
-            short: false            
+            short: false
+        footer: "{{ release.slack.footer }}"
+        footer_icon: "{{ release.slack.footer_icon }}"                       
     username: "{{ release.slack.username }}"
     channel: "{{ release.slack.channel }}"
     icon_emoji: "{{ release.slack.icon_emoji }}"

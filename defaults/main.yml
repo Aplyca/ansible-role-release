@@ -23,3 +23,9 @@ release:
     channel: general
     message: "New version released on App"
     description: "New version released"
+    title_link: "https://www.ansible.com"
+    author_name: "Ansible"
+    author_link: "https://www.ansible.com"
+    author_icon: "https://www.ansible.com/hs-fs/hub/330046/file-448313641-png/favicon.png"
+    footer: "Ansible"
+    footer_icon: "https://www.ansible.com/hs-fs/hub/330046/file-448313641-png/favicon.png"
