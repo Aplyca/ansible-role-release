@@ -36,5 +36,6 @@
    path: "{{ release.target }}/{{ release.project }}/{{ release.release_dirname }}/{{ item }}"
    state: absent
   with_items: "{{ remove_dirs.stdout_lines }}"
+  when: remove_dirs.stdout_lines is defined
   async: 3600
   poll: 0
