@@ -53,8 +53,12 @@
   ignore_errors: yes
   changed_when: False
 
-- include: abort.yml
+- block:
+    - name: Abort release
+      include: abort.yml
   when: new_code.stdout == "" or new_code.stderr != ""
 
-- include: release.yml
+- block:
+    - name: Release new code
+      include: release.yml
   when: new_code.stdout != "" and new_code.stderr == ""
