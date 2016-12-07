@@ -29,7 +29,7 @@
   args:
     chdir: "{{ release.target }}/{{ release.project }}/{{ release.release_symlink }}"
   ignore_errors: yes
-  when: release_tag.version is not defined and latest_tag.stdout != ""
+  when: release_tag.version is undefined and latest_tag.stdout != ""
 
 - name: Create and checkout new release tag
   shell: "{{ item }}"
@@ -83,7 +83,7 @@
             value: "{{ changelog.stdout }}"
             short: false
         footer: "{{ release.slack.footer }}"
-        footer_icon: "{{ release.slack.footer_icon }}"                       
+        footer_icon: "{{ release.slack.footer_icon }}"
     username: "{{ release.slack.username }}"
     channel: "{{ release.slack.channel }}"
     icon_emoji: "{{ release.slack.icon_emoji }}"
