@@ -9,13 +9,14 @@ release:
     diff_url: https://github.com
     publish: true
     prefix: "v"
+  env_vars: {}  
   during_commands: []
   after_commands: []
   sync_exclude: []
   max_keep: 3
   releaser: "Anonymous"
   release_dirname: releases
-  release_symlink: current   
+  release_symlink: current
   slack:
     token: TOKEN/OF/SLACK
     username: "Release user"

@@ -1,6 +1,7 @@
 ---
 - name: "Run during commands"
   shell: "{{ item }}"
+  environment: "{{ release.env_vars | default({}) }}"
   args:
     chdir: "{{ release.target }}/{{ release.project }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
   with_items: "{{ release.during_commands }}"
@@ -17,6 +18,7 @@
   shell: "{{ item }}"
   args:
     chdir: "{{ release.target }}/{{ release.project }}"
+  environment: "{{ release.env_vars | default({}) }}"    
   with_items: "{{ release.after_commands }}"
   ignore_errors: yes
   async: 3600
