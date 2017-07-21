@@ -88,3 +88,16 @@
     channel: "{{ release.slack.channel }}"
     icon_emoji: "{{ release.slack.icon_emoji }}"
   when: release.slack.token is defined and release_tag.version is defined and release.semver.publish
+
+- name: Send webhook notification
+  local_action: uri
+  args:
+    url: "{{ webhook.url }}"
+    method: "{{ webhook.method }}"
+    body: "{{ lookup('template', webhook.body_template) }}"
+    body_format: json
+    user: "{{ webhook.user }}"
+    password: "{{ webhook.password }}"
+  async: 3600
+  poll: 0
+  when: webhook.url and release_tag.version is defined and release.semver.publish

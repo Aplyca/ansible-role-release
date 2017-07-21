@@ -9,7 +9,7 @@ release:
     diff_url: https://github.com
     publish: true
     prefix: "v"
-  env_vars: {}  
+  env_vars: {}
   during_commands: []
   after_commands: []
   sync_exclude: []
@@ -30,3 +30,9 @@ release:
     author_icon: "https://www.ansible.com/hs-fs/hub/330046/file-448313641-png/favicon.png"
     footer: "Ansible"
     footer_icon: "https://www.ansible.com/hs-fs/hub/330046/file-448313641-png/favicon.png"
+  webhook:
+    url: false
+    method: "POST"
+    body_template: "templates/webhook_default_response.json.j2"
+    user: ""
+    password: ""
