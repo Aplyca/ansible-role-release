@@ -3,6 +3,7 @@ release:
   repo: https://github.com/Aplyca/ansible-role-release.git
   target: /tmp
   project: myapp
+  environment: dev
   semver:
     enabled: false
     type: patch

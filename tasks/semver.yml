@@ -68,7 +68,7 @@
     token: "{{ release.slack.token }}"
     msg: "{{ release.slack.message }}"
     attachments:
-      - title: "{{ release.semver.type | title() }} version {{ release_tag.version }} released by {{ release.releaser }} on {{ release.project | upper() }}"
+      - title: "{{ release.semver.type | title() }} version {{ release_tag.version }} released by {{ release.releaser }} on {{ release.project | upper() }} {{ release.environment | title() }}"
         text: "{{ release.slack.description }}"
         color: good
         title_link: "{{ release.slack.title_link }}"
