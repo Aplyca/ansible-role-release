@@ -92,12 +92,12 @@
 - name: Send webhook notification
   local_action: uri
   args:
-    url: "{{ webhook.url }}"
-    method: "{{ webhook.method }}"
-    body: "{{ lookup('template', webhook.body_template) }}"
+    url: "{{ release.webhook.url }}"
+    method: "{{ release.webhook.method }}"
+    body: "{{ lookup('template', release.webhook.body_template) }}"
     body_format: json
-    user: "{{ webhook.user }}"
-    password: "{{ webhook.password }}"
+    user: "{{ release.webhook.user }}"
+    password: "{{ release.webhook.password }}"
   async: 3600
   poll: 0
-  when: webhook.url and release_tag.version is defined and release.semver.publish
+  when: release.webhook.url and release_tag.version is defined and release.semver.publish
