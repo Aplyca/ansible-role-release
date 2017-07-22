@@ -35,5 +35,6 @@ release:
     url: false
     method: "POST"
     body_template: "webhook_default_response.json.j2"
+    body_template_fail: "webhook_fail_response.json.j2"    
     user: ""
     password: ""

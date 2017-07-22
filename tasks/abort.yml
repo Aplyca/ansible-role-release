@@ -5,3 +5,23 @@
     state: absent
   async: 3600
   poll: 0
+
+- name: Get latest version
+  shell: "git describe --dirty --always --abbrev=0 --tags 2>&1 | grep '{{ release.semver.prefix }}'"
+  args:
+    chdir: "{{ release.target }}/{{ release.project }}/{{ release.release_symlink }}"
+  register: latest_version
+  ignore_errors: yes
+
+- name: Send webhook notification
+  local_action: uri
+  args:
+    url: "{{ release.webhook.url }}"
+    method: "{{ release.webhook.method }}"
+    body: "{{ lookup('template', release.webhook.body_template_fail) }}"
+    body_format: json
+    user: "{{ release.webhook.user }}"
+    password: "{{ release.webhook.password }}"
+  async: 3600
+  poll: 0
+  when: release.webhook.url and release.semver.publish
