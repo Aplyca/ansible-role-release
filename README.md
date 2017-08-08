@@ -20,12 +20,12 @@ Installation
 
 Using ansible galaxy:
 ```bash
-ansible-galaxy install aplyca.Release
+ansible-galaxy install Aplyca.Release
 ```
 You can add this role as a dependency for other roles, add the role to the meta/main.yml file of your own role:
 ```yaml
 dependencies:
-  - { role: aplyca.Release }
+  - { role: Aplyca.Release }
 ```
 
 Role Variables
