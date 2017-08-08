@@ -1,0 +1,8 @@
+{{ message }}
+{% if status_repo is defined and status_repo.stdout != "" %}
+  Nothing to release!. The latest version {{ latest_version.stdout }} of {{ release.project }} is already in {{ release.environment }}.
+{% endif %}
+{% if clean_repo is defined and clean_repo.stdout != "" %}
+  The following changes were found in the local repository:
+  {{ clean_repo.stdout }}
+{% endif %}

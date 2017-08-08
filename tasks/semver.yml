@@ -1,103 +1,59 @@
 ---
-- name: Get latest tag
-  shell: "git describe --dirty --always --abbrev=0 --tags 2>&1 | grep '{{ release.semver.prefix }}'"
+- name: Cluan up local tags
+  shell: "git fetch --prune {{ release.remote }}  \"+refs/tags/*:refs/tags/*\""
   args:
-    chdir: "{{ release.target }}/{{ release.project }}/{{ release.release_symlink }}"
-  register: latest_tag
-  ignore_errors: yes
+    chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_symlink }}"
+
+- name: Get current tag
+  shell: "git describe --dirty --always --abbrev=0 --tags 2>&1 | grep -F '.' | grep '{{ release.semver.prefix }}'"
+  args:
+    chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_symlink }}"
+  register: current_tag
+  failed_when: current_tag.stdout == ""
 
 - name: Check if new tag should be generated
-  shell: "tagdiff=$(git diff tags/{{ latest_tag.stdout }}) && if [ ! -z \"$tagdiff\" -a \"$tagdiff\" != \"\" ]; then echo 'New tag'; fi"
+  shell: "git diff tags/{{ current_tag.stdout }}"
   args:
-    chdir: "{{ release.target }}/{{ release.project }}/{{ release.release_symlink }}"
-  register: if_new_tag
-  ignore_errors: yes
-  changed_when: False
-  when: latest_tag.stdout != "" or latest_tag.stderr == ""
+    chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_symlink }}"
+  register: diff_current_tag
+  failed_when: diff_current_tag.stdout == ""
 
 - name: Generate new release tag version
   semver:
-    version: "{{ latest_tag.stdout }}"
+    version: "{{ current_tag.stdout }}"
     type: "{{ release.semver.type }}"
     prefix: "{{ release.semver.prefix }}"
   register: release_tag
-  ignore_errors: yes
-  when: if_new_tag.stdout != "" and if_new_tag.stderr == ""
-
-- name: Checkout latest tag
-  shell: "git checkout tags/{{ latest_tag.stdout }} -b release-{{ latest_tag.stdout }}"
-  args:
-    chdir: "{{ release.target }}/{{ release.project }}/{{ release.release_symlink }}"
-  ignore_errors: yes
-  when: release_tag.version is undefined and latest_tag.stdout != ""
 
 - name: Create and checkout new release tag
   shell: "{{ item }}"
   args:
-    chdir: "{{ release.target }}/{{ release.project }}/{{ release.release_symlink }}"
+    chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_symlink }}"
   with_items:
     - "git tag -f -a {{ release_tag.version }} -m \"Version {{ release_tag.version }} released by {{ release.releaser }}\""
     - "git checkout tags/{{ release_tag.version }} -B release-{{ release_tag.version }}"
-  ignore_errors: yes
   when: release_tag.version is defined
 
 - name: Publish new release tag
   shell: "git push origin {{ release_tag.version }}"
   args:
-    chdir: "{{ release.target }}/{{ release.project }}/{{ release.release_symlink }}"
-  ignore_errors: yes
+    chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_symlink }}"
   when: release_tag.version is defined and release.semver.publish
   async: 3600
   poll: 0
 
 - name: Get Changelog
-  shell: "git log {{ latest_tag.stdout }}..{{ release_tag.version }} --pretty=format:\"%h %an, %ar: %s\" --no-merges"
+  shell: "git log {{ current_tag.stdout }}..{{ release_tag.version }} --pretty=format:\"%h %an, %ar: %s\" --no-merges"
   args:
-    chdir: "{{ release.target }}/{{ release.project }}/{{ release.release_symlink }}"
+    chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_symlink }}"
   register: changelog
-  ignore_errors: yes
   when: release_tag.version is defined
 
 - name: Released new version
   debug:
-    msg: "Type: {{ release.semver.type }}, Previous: {{ latest_tag.stdout }}, New: {{ release_tag.version }}, Diff: {{ release.semver.diff_url }}/{{ latest_tag.stdout }}...{{ release_tag.version }}, Changelog: {{ changelog.stdout_lines }}"
+    msg: "Type: {{ release.semver.type }}, Previous: {{ current_tag.stdout }}, New: {{ release_tag.version }}, Diff: {{ release.semver.diff_url }}/{{ current_tag.stdout }}...{{ release_tag.version }}, Changelog: {{ changelog.stdout_lines }}"
   when: release_tag.version is defined
 
-- name: Send notification to Slack
-  slack:
-    token: "{{ release.slack.token }}"
-    msg: "{{ release.slack.message }}"
-    attachments:
-      - title: "{{ release.semver.type | title() }} version {{ release_tag.version }} released by {{ release.releaser }} on {{ release.project | upper() }} {{ release.environment | title() }}"
-        text: "{{ release.slack.description }}"
-        color: good
-        title_link: "{{ release.slack.title_link }}"
-        author_name: "{{ release.slack.author_name }}"
-        author_link: "{{ release.slack.author_link }}"
-        author_icon: "{{ release.slack.author_icon }}"
-        fields:
-          - title: "Version change:"
-            value: "{{ release.semver.type | title() }} version, <{{ release.semver.diff_url }}/{{ latest_tag.stdout }}...{{ release_tag.version }}|from {{ latest_tag.stdout }} to {{ release_tag.version }}>"
-            short: true
-          - title: "Changelog:"
-            value: "{{ changelog.stdout }}"
-            short: false
-        footer: "{{ release.slack.footer }}"
-        footer_icon: "{{ release.slack.footer_icon }}"
-    username: "{{ release.slack.username }}"
-    channel: "{{ release.slack.channel }}"
-    icon_emoji: "{{ release.slack.icon_emoji }}"
-  when: release.slack.token is defined and release_tag.version is defined and release.semver.publish
-
-- name: Send webhook notification
-  local_action: uri
-  args:
-    url: "{{ release.webhook.url }}"
-    method: "{{ release.webhook.method }}"
-    body: "{{ lookup('template', release.webhook.body_template) }}"
-    body_format: json
-    user: "{{ release.webhook.user }}"
-    password: "{{ release.webhook.password }}"
-  async: 3600
-  poll: 0
-  when: release.webhook.url and release_tag.version is defined and release.semver.publish
+- name: Setting success message
+  set_fact:
+    message: "The \"{{ release.semver.type }}\" version {{ release_tag.version }} of {{ release.project }} was successfuly published and released."

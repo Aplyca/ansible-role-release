@@ -1,4 +1,5 @@
 #!/usr/bin/python
+import collections
 
 def main():
     types = ['major', 'minor', 'patch']
@@ -19,7 +20,7 @@ def main():
         if not version:
             raise Exception('Invalid version format', version)
 
-        version_dict = dict(zip(types, version.lstrip(prefix).split('.')))
+        version_dict = collections.OrderedDict(zip(types, version.lstrip(prefix).split('.')))
         version_dict[type] = str(int(version_dict[type]) + 1)
 
         if type != "patch":
