@@ -1,0 +1,26 @@
+---
+- name: Get new release directory name
+  shell: "date +\"%Y%m%d%H%M%S\""
+  register: release_dir
+
+- name: Create release directory
+  file:
+   path: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
+   state: directory
+
+- name: Copy App to new release directory
+  shell: "rsync -aAX --inplace {% for path in release.sync_exclude %}--exclude '{{ path }}' {% endfor %}{{ release.release_symlink }}/ {{ release.release_dirname }}/{{ release_dir.stdout }}/"
+  args:
+    chdir: "{{ release.target }}/{{ release.project | lower() }}"
+
+- name: Update repo
+  shell: "git fetch"
+  args:
+    chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
+
+- name: Check if new code exists to release
+  shell: "git --no-pager diff {{ release.remote }}/master"
+  args:
+    chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
+  register: code_repo
+  failed_when: code_repo.stdout == ""

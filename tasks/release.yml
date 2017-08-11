@@ -1,42 +1,22 @@
 ---
+- name: Get latest code
+  git:
+    dest: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
+    force: yes
+    repo: "{{ release.repo }}"
+    version: master
+
 - name: "Run during commands"
   shell: "{{ item }}"
   environment: "{{ release.env_vars | default({}) }}"
   args:
-    chdir: "{{ release.target }}/{{ release.project }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
+    chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
   with_items: "{{ release.during_commands }}"
 
 - name: Publish new release
   shell: "{{ item }}"
   args:
-    chdir: "{{ release.target }}/{{ release.project }}"
+    chdir: "{{ release.target }}/{{ release.project | lower() }}"
   with_items:
     - "ln -sf {{ release.release_dirname }}/{{ release_dir.stdout }} latest"
     - "mv -T latest {{ release.release_symlink }}"
-
-- name: Run after commands
-  shell: "{{ item }}"
-  args:
-    chdir: "{{ release.target }}/{{ release.project }}"
-  environment: "{{ release.env_vars | default({}) }}"    
-  with_items: "{{ release.after_commands }}"
-  ignore_errors: yes
-  async: 3600
-  poll: 0
-
-- include: semver.yml
-  when: release.semver.enabled
-
-- name: Get release directories to remove
-  shell: "/bin/ls -X1 | grep '^2' | sort | awk \"NR<=$(expr $(ls -1 | grep '^2' | wc -l) - {{ release.max_keep }})\""
-  args:
-    chdir: "{{ release.target }}/{{ release.project }}/{{ release.release_dirname }}"
-  register: remove_dirs
-
-- name: Removing surplus directories
-  file:
-   path: "{{ release.target }}/{{ release.project }}/{{ release.release_dirname }}/{{ item }}"
-   state: absent
-  with_items: "{{ remove_dirs.stdout_lines | default([]) }}"
-  async: 3600
-  poll: 0

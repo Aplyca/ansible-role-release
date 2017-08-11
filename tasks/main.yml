@@ -2,61 +2,70 @@
 - debug: var=release verbosity=1
   tags: vars
 
-- name: Check if App is properly installed
-  stat:
-    path: "{{ release.target }}/{{ release.project }}/{{ release.release_symlink }}"
-  register: app_root
-  failed_when: not (app_root.stat.islnk is defined and app_root.stat.islnk)
+- set_fact:
+    step: false
+    message: ""
 
-- name: Check if App is a git repo
-  stat:
-    path: "{{ release.target }}/{{ release.project }}/{{ release.release_symlink }}/.git"
-  register: app_repo
-  failed_when: not (app_repo.stat.isdir is defined and app_repo.stat.isdir)
+- name: Validate if a new version can be released
+  block:
+    - name: Failsafe for tasks to check app
+      block:
+        - name: Tasks for checking app
+          include: check-app.yml
+      rescue:
+        - name: Setting failed step
+          set_fact:
+            step: check-app
+            message: "The app \"{{ release.project }}\" is not properly installed"
+        - name: Failing step
+          fail:
+            msg: "The app \"{{ release.project }}\" is not properly installed"
 
-# TODO: Check if App directory is clean (not modified/untracked files, use "git status" )
+    - name: Failsafe for tasks before the release
+      block:
+        - name: Tasks before release
+          include: pre-release.yml
+      rescue:
+        - name: Setting failed step
+          set_fact:
+            step: pre-release
+            message: "A task before the release failed, so the release was aborted"
+        - name: Abort release
+          include: abort.yml
+        - name: Failing step
+          fail:
+            msg: "A task before the release failed"
 
-- name: Get new release directory
-  shell: "date +\"%Y%m%d%H%M%S\""
-  register: release_dir
-  changed_when: False
+    - name: Failsafe for tasks during the release
+      block:
+        - name: Tasks during release
+          include: release.yml
+      rescue:
+        - name: Setting failed step
+          set_fact:
+            step: release
+            message: "Some task during the release failed"
+        - name: Failing step
+          fail:
+            msg: "Some task during the release failed"
 
-- name: Create release directory
-  file:
-   path: "{{ release.target }}/{{ release.project }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
-   state: directory
+    - name: Failsafe for tasks after the release
+      block:
+        - name: Tasks after release
+          include: post-release.yml
+      rescue:
+        - name: Setting failed step
+          set_fact:
+            step: post-release
+            message: "New code was successful released but a task after the release failed"
+        - name: Failing step
+          fail:
+            msg: "A tasks after the release failed"
 
-- name: Copy App to new release directory
-  shell: "rsync -aAX --inplace {% for path in release.sync_exclude %}--exclude '{{ path }}' {% endfor %}{{ release.release_symlink }}/ {{ release.release_dirname }}/{{ release_dir.stdout }}/"
-  args:
-    chdir: "{{ release.target }}/{{ release.project }}"
-
-- name: Get current branch
-  shell: "git rev-parse --abbrev-ref HEAD"
-  args:
-    chdir: "{{ release.target }}/{{ release.project }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
-  register: current_branch
-  changed_when: False
-
-- name: Get latest code
-  git:
-    dest: "{{ release.target }}/{{ release.project }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
-    force: yes
-    repo: "{{ release['repo'] }}"
-    version: master
-
-- name: Check if new code exists to release
-  shell: "branchdiff=$(git diff {{ current_branch.stdout }}) && if [ ! -z \"$branchdiff\" -a \"$branchdiff\" != \"\" ]; then echo 'New code'; fi"
-  args:
-    chdir: "{{ release.target }}/{{ release.project }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
-  register: new_code
-  ignore_errors: yes
-  changed_when: False
-
-- name: Abort release
-  include: abort.yml
-  when: new_code.stdout == "" or new_code.stderr != ""
-
-- name: Release new code
-  include: release.yml
-  when: new_code.stdout != "" and new_code.stderr == ""
+  rescue:
+    - name: Setting success status
+      set_fact:
+        success: false
+  always:
+    - name: Send Notifications
+      include: notifications.yml
