@@ -2,9 +2,11 @@
 - debug: var=release verbosity=1
   tags: vars
 
-- set_fact:
+- name: Initializing variables
+  set_fact:
     step: false
     message: ""
+    alert: "danger"
 
 - name: Validate if a new version can be released
   block:
@@ -58,14 +60,18 @@
           set_fact:
             step: post-release
             message: "New code was successful released but a task after the release failed"
+            alert: "warning"
         - name: Failing step
           fail:
             msg: "A tasks after the release failed"
 
   rescue:
-    - name: Setting success status
-      set_fact:
-        success: false
+    - name: Debug error
+      debug:
+        msg:
+          - "Step: {{ step }}"
+          - "Message: {{ message }}"
+          - "alert: {{ alert }}"
   always:
     - name: Send Notifications
       include: notifications.yml

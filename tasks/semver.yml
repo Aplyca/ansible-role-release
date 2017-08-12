@@ -1,5 +1,5 @@
 ---
-- name: Cluan up local tags
+- name: Clean up local tags
   shell: "git fetch --prune {{ release.remote }}  \"+refs/tags/*:refs/tags/*\""
   args:
     chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_symlink }}"
@@ -56,4 +56,6 @@
 
 - name: Setting success message
   set_fact:
+    step: "release"
+    alert: "good"
     message: "The \"{{ release.semver.type }}\" version {{ release_tag.version }} of {{ release.project }} was successfuly published and released."
