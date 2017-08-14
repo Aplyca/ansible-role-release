@@ -18,9 +18,21 @@
   args:
     chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
 
+- name: Clean up local tags
+  shell: "git fetch --prune {{ release.remote }}  \"+refs/tags/*:refs/tags/*\""
+  args:
+    chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_symlink }}"
+
+- name: Get current tag
+  shell: "git describe --dirty --always --abbrev=0 --tags 2>&1 | grep -F '.' | grep '{{ release.semver.prefix }}'"
+  args:
+    chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_symlink }}"
+  register: current_tag
+  failed_when: current_tag.stdout == ""
+
 - name: Check if new code exists to release
   shell: "git --no-pager diff {{ release.remote }}/master"
   args:
     chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
-  register: code_repo
-  failed_when: code_repo.stdout == ""
+  register: new_code
+  failed_when: new_code.stdout == ""

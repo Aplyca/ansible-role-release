@@ -38,3 +38,4 @@ release:
     message_template: "webhook_message.json.j2"
     user: ""
     password: ""
+    data: {}

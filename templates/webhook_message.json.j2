@@ -1,8 +1,16 @@
-{{ message }}
-{% if status_repo is defined and status_repo.stdout != "" %}
-  Nothing to release!. The latest version {{ latest_version.stdout }} of {{ release.project }} is already in {{ release.environment }}.
-{% endif %}
-{% if clean_repo is defined and clean_repo.stdout != "" %}
-  The following changes were found in the local repository:
-  {{ clean_repo.stdout }}
-{% endif %}
+{
+  {% for key, value in release.webhook.data|dictsort(true) %}
+    "{{ key }}": "{{ value }}",
+  {% endfor %}
+  "message": "{{ message }}",
+  "alert": "{{ alert }}",
+  "app": "{{ step }}",
+  "app": "{{ release.project }}",
+  "environment": "{{ release.environment }}",
+  "dirty_repo": {% if status_repo is defined and status_repo.stdout != "" %}"{{ status_repo.stdout }}"{% else %}false{% endif %},
+  "valid_release": {% if new_code is defined and new_code.stdout != "" %}true{% else %}false{% endif %},
+  "current_version": {% if current_tag is defined and current_tag.stdout != "" %}"{{ current_tag.stdout }}"{% else %}false{% endif %},
+  "new_version": {% if release_tag is defined and release_tag.version != "" %}"{{ release_tag.version }}"{% else %}false{% endif %},
+  "version_type": "{{ release.semver.type }}",
+  "diff_url": "{{ release.semver.diff_url }}"
+}

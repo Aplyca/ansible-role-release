@@ -6,9 +6,3 @@
   async: 3600
   poll: 0
   when: release_dir is defined
-
-- name: Get latest version
-  shell: "git describe --dirty --always --abbrev=0 --tags 2>&1 | grep '{{ release.semver.prefix }}'"
-  args:
-    chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_symlink }}"
-  register: latest_version

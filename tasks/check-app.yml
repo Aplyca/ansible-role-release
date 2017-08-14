@@ -15,5 +15,5 @@
   shell: "git status -s"
   args:
     chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_symlink }}"
-  register: clean_repo
-  failed_when: clean_repo.stdout != ""
+  register: status_repo
+  failed_when: status_repo.stdout != ""

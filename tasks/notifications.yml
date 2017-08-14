@@ -25,11 +25,11 @@
     icon_emoji: "{{ release.slack.icon_emoji }}"
   when: release.slack.token is defined and changelog is defined and release.semver.publish
 
-- name: DEBUG NOTIFICATION
+- name: Debug notification info
   debug:
-    msg:
-      - "{{ lookup('template', release.webhook.message_template) }}"
-      - "{{ step }}"
+    verbosity: 1
+    msg: "{{ lookup('template', release.webhook.message_template) }}"
+  tags: vars
 
 - name: Send webhook notification
   local_action: uri
