@@ -6,7 +6,7 @@
   set_fact:
     step: false
     message: ""
-    alert: "danger"
+    alert: "good"
 
 - name: Validate if a new version can be released
   block:
@@ -18,6 +18,7 @@
         - name: Setting failed step
           set_fact:
             step: check-app
+            alert: warning
             message: "The app \"{{ release.project }}\" is not properly installed"
         - name: Failing step
           fail:
@@ -31,7 +32,8 @@
         - name: Setting failed step
           set_fact:
             step: pre-release
-            message: "A task before the release failed, so the release was aborted"
+            alert: warning
+            message: "A task before the release failed, so it was aborted."
         - name: Abort release
           include: abort.yml
         - name: Failing step
@@ -46,6 +48,7 @@
         - name: Setting failed step
           set_fact:
             step: release
+            alert: danger
             message: "Some task during the release failed"
         - name: Failing step
           fail:
