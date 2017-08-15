@@ -1,14 +1,15 @@
+#jinja2: lstrip_blocks: True
 {
   {% for key, value in release.webhook.data|dictsort(true) %}
     "{{ key }}": "{{ value }}",
   {% endfor %}
   "message": "{{ message }}",
   "alert": "{{ alert }}",
-  "app": "{{ step }}",
+  "step": "{{ step }}",
   "app": "{{ release.project }}",
   "environment": "{{ release.environment }}",
   "dirty_repo": {% if status_repo is defined and status_repo.stdout != "" %}"{{ status_repo.stdout }}"{% else %}false{% endif %},
-  "valid_release": {% if new_code is defined and new_code.stdout != "" %}true{% else %}false{% endif %},
+  "empty_release": {% if new_code is defined and new_code.stdout == "" %}true{% else %}false{% endif %},
   "current_version": {% if current_tag is defined and current_tag.stdout != "" %}"{{ current_tag.stdout }}"{% else %}false{% endif %},
   "new_version": {% if release_tag is defined and release_tag.version != "" %}"{{ release_tag.version }}"{% else %}false{% endif %},
   "version_type": "{{ release.semver.type }}",
