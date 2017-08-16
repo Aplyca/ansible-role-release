@@ -46,4 +46,4 @@
   set_fact:
     step: "release"
     alert: "good"
-    message: "The \"{{ release.semver.type }}\" version \"{{ release_tag.version }}\" of \"{{ release.project }}\" was successfuly published and released in \"{{ release.environment }}\""
+    message: "The '{{ release.semver.type }}' version '{{ release_tag.version }}' of '{{ release.project }}' was successfuly published and released in '{{ release.environment }}'"
