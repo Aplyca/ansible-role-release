@@ -19,10 +19,10 @@
           set_fact:
             step: check-app
             alert: warning
-            message: "The app \"{{ release.project }}\" is not properly installed"
+            message: "The app '{{ release.project }}' is not properly installed"
         - name: Failing step
           fail:
-            msg: "The app \"{{ release.project }}\" is not properly installed"
+            msg: "The app '{{ release.project }}' is not properly installed"
 
     - name: Failsafe for tasks before the release
       block:
