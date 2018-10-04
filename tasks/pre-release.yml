@@ -14,7 +14,7 @@
     chdir: "{{ release.target }}/{{ release.project | lower() }}"
 
 - name: Update repo
-  shell: "git fetch"
+  command: "git fetch"
   args:
     chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
 
