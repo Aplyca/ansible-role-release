@@ -1,4 +1,3 @@
----
 - name: Send notification to Slack
   slack:
     token: "{{ release.slack.token }}"
@@ -41,4 +40,3 @@
     user: "{{ release.webhook.user }}"
     password: "{{ release.webhook.password }}"
   when: release.webhook.url
-  become: false
