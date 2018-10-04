@@ -40,7 +40,5 @@
     body_format: json
     user: "{{ release.webhook.user }}"
     password: "{{ release.webhook.password }}"
-  async: 3600
-  poll: 0
   when: release.webhook.url
   become: false
