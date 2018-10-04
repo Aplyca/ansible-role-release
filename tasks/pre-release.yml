@@ -12,17 +12,13 @@
   args:
     chdir: "{{ release.target }}/{{ release.project | lower() }}"
 
-#- name: Get latest code
-#  git:
-#    dest: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
-#    force: yes
-#    repo: "{{ release.repo }}"
-#    version: master
-
-- name: Clean up local tags
-  shell: "git checkout master && git pull"
-  args:
-    chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
+- name: Get latest code
+  git:
+    dest: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
+    force: yes
+    repo: "{{ release.repo }}"
+    version: master
+  become: false
 
 - name: Clean up local tags
   shell: "git fetch --prune --prune-tags"
