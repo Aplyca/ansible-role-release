@@ -24,6 +24,7 @@
   shell: "git fetch --prune --prune-tags"
   args:
     chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
+  become: false
 
 - name: Get current tag
   shell: "git describe --dirty --always --abbrev=0 --tags 2>&1 | grep -F '.' | grep '{{ release.semver.prefix }}'"
