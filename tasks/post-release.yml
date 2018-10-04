@@ -24,7 +24,7 @@
   when: release.semver.enabled
 
 - name: Get release directories to remove
-  shell: '/bin/ls -X1 | grep \'^2\' | sort | awk "NR<=$(expr $(ls -1 | grep \'^2\' | wc -l) - {{ release.max_keep }})"'
+  shell: "/bin/ls -X1 | grep '^2' | sort | awk \"NR<=$(expr $(ls -1 | grep '^2' | wc -l) - {{ release.max_keep }})\""
   args:
     chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_dirname }}"
   register: remove_dirs
