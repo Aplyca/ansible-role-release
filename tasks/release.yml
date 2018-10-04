@@ -1,11 +1,3 @@
----
-- name: Get latest code
-  git:
-    dest: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
-    force: yes
-    repo: "{{ release.repo }}"
-    version: master
-
 - name: "Run during commands"
   shell: "{{ item }}"
   environment: "{{ release.env_vars | default({}) }}"

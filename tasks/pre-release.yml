@@ -1,37 +1,38 @@
----
 - name: Get new release directory name
-  shell: "date +\"%Y%m%d%H%M%S\""
+  shell: 'date +"%Y%m%d%H%M%S"'
   register: release_dir
 
 - name: Create release directory
   file:
-   path: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
-   state: directory
+    path: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
+    state: directory
 
 - name: Copy App to new release directory
   shell: "rsync -aAX --inplace {% for path in release.sync_exclude %}--exclude '{{ path }}' {% endfor %}{{ release.release_symlink }}/ {{ release.release_dirname }}/{{ release_dir.stdout }}/"
   args:
     chdir: "{{ release.target }}/{{ release.project | lower() }}"
 
-- name: Update repo
-  command: "git fetch"
-  args:
-    chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
+- name: Get latest code
+  git:
+    dest: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
+    force: yes
+    repo: "{{ release.repo }}"
+    version: master
 
 - name: Clean up local tags
-  shell: "git fetch --prune {{ release.remote }}  \"+refs/tags/*:refs/tags/*\""
+  shell: "git fetch --prune --prune-tags"
   args:
-    chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_symlink }}"
+    chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
 
 - name: Get current tag
   shell: "git describe --dirty --always --abbrev=0 --tags 2>&1 | grep -F '.' | grep '{{ release.semver.prefix }}'"
   args:
-    chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_symlink }}"
+    chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
   register: current_tag
   failed_when: current_tag.stdout == ""
 
 - name: Check if new code exists to release
-  shell: "git --no-pager diff {{ release.remote }}/master"
+  shell: "git --no-pager diff tags/{{ current_tag.stdout }}""
   args:
     chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
   register: new_code

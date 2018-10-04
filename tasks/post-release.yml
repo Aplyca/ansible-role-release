@@ -1,4 +1,3 @@
----
 - name: Run after commands
   shell: "{{ item }}"
   args:
@@ -11,7 +10,7 @@
 - name: Generate new Semver tag
   block:
     - name: Generating and publishing semver release
-      include: semver.yml
+      import_tasks: semver.yml
   rescue:
     - name: Create an alternative local tag
       shell: "git checkout -b release-no-tag-{{ release_dir.stdout }}"
@@ -21,19 +20,19 @@
 
     - name: Setting semver failed message
       set_fact:
-        message: "New code of \"{{ release.project }}\" was successfuly released but semver version \"{{ release.semver.type }}\" was not created, an alternative tag \"release-no-tag-{{ release_dir.stdout }}\" was created locally."
+        message: 'New code of "{{ release.project }}" was successfuly released but semver version "{{ release.semver.type }}" was not created, an alternative tag "release-no-tag-{{ release_dir.stdout }}" was created locally.'
   when: release.semver.enabled
 
 - name: Get release directories to remove
-  shell: "/bin/ls -X1 | grep '^2' | sort | awk \"NR<=$(expr $(ls -1 | grep '^2' | wc -l) - {{ release.max_keep }})\""
+  shell: '/bin/ls -X1 | grep '^2' | sort | awk "NR<=$(expr $(ls -1 | grep '^2' | wc -l) - {{ release.max_keep }})"'
   args:
     chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_dirname }}"
   register: remove_dirs
 
 - name: Removing surplus directories
   file:
-   path: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_dirname }}/{{ item }}"
-   state: absent
+    path: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_dirname }}/{{ item }}"
+    state: absent
   with_items: "{{ remove_dirs.stdout_lines | default([]) }}"
   async: 3600
   poll: 0

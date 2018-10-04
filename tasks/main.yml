@@ -1,4 +1,3 @@
----
 - debug: var=release verbosity=1
   tags: vars
 
@@ -13,7 +12,7 @@
     - name: Failsafe for tasks to check app
       block:
         - name: Tasks for checking app
-          include: check-app.yml
+          import_tasks: check-app.yml
       rescue:
         - name: Setting failed step
           set_fact:
@@ -27,7 +26,7 @@
     - name: Failsafe for tasks before the release
       block:
         - name: Tasks before release
-          include: pre-release.yml
+          import_tasks: pre-release.yml
       rescue:
         - name: Setting failed step
           set_fact:
@@ -35,7 +34,7 @@
             alert: warning
             message: "A task before the release failed, so it was aborted."
         - name: Abort release
-          include: abort.yml
+          import_tasks: abort.yml
         - name: Failing step
           fail:
             msg: "A task before the release failed"
@@ -43,7 +42,7 @@
     - name: Failsafe for tasks during the release
       block:
         - name: Tasks during release
-          include: release.yml
+          import_tasks: release.yml
       rescue:
         - name: Setting failed step
           set_fact:
@@ -57,7 +56,7 @@
     - name: Failsafe for tasks after the release
       block:
         - name: Tasks after release
-          include: post-release.yml
+          import_tasks: post-release.yml
       rescue:
         - name: Setting failed step
           set_fact:
@@ -77,4 +76,4 @@
           - "alert: {{ alert }}"
   always:
     - name: Send Notifications
-      include: notifications.yml
+      import_tasks: notifications.yml
