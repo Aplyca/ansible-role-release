@@ -32,7 +32,7 @@
   failed_when: current_tag.stdout == ""
 
 - name: Check if new code exists to release
-  shell: "git --no-pager diff tags/{{ current_tag.stdout }}"
+  shell: "git --no-pager diff --name-only tags/{{ current_tag.stdout }}"
   args:
     chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_dirname }}/{{ release_dir.stdout }}"
   register: new_code
