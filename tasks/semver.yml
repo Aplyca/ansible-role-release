@@ -1,6 +1,6 @@
 ---
 - name: Check if new tag should be generated
-  shell: "git diff tags/{{ current_tag.stdout }}"
+  shell: "git --no-pager diff --name-only tags/{{ current_tag.stdout }}"
   args:
     chdir: "{{ release.target }}/{{ release.project | lower() }}/{{ release.release_symlink }}"
   register: diff_current_tag
